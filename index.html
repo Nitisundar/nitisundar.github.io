@@ -842,7 +842,7 @@ function migrateV1(v1){
   }
   return d;
 }
-function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); try{ localStorage.setItem('starkle_local_ts', String(Date.now())); }catch(e){} }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 /* ---------- Helpers ---------- */
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -3720,6 +3720,7 @@ function renderFamily(){
     '<div class="card"><div class="section-title">\ud83d\udcca Stats &amp; insights</div>'+
     '<div class="muted" style="margin-bottom:10px">Weekly overview, charts, streaks and recent activity \u2014 with print &amp; save-as-PDF.</div>'+
     '<button class="btn gold" onclick="openStats()">\ud83d\udcc8 Open stats</button></div>'+
+    (parent?'<div class="card" id="gs-sync-card">'+syncCardHtml()+'</div>':'')+
     '<div class="card"><div class="section-title">\ud83d\udcbe Your data</div>'+
     '<div class="muted" style="margin-bottom:10px">Everything is saved in this browser. Back it up or move it to another device with JSON files.</div>'+
     '<div class="row" style="flex-wrap:wrap">'+dataButtons+'</div></div>';
@@ -4674,6 +4675,90 @@ function tickClock(){
 }
 tickClock(); setInterval(tickClock, 1000*20);
 
+/* ============================================================
+   GOOGLE DRIVE SYNC  (whole-state blob in the private app folder)
+   pull on open + manual "Sync now"; last-write-wins by timestamp
+   ============================================================ */
+const GSYNC_CLIENT_ID='956849465059-h1re1lh5ueh56n96jfcahb2gq284lp8c.apps.googleusercontent.com';
+const GSYNC_SCOPE='https://www.googleapis.com/auth/drive.appdata';
+const GSYNC_FILENAME='starkle-state.json';
+let _gsTokenClient=null, _gsTokenCb=null, _gsBusy=false;
+
+function gsOn(){ return localStorage.getItem('starkle_sync_on')==='1'; }
+function gsLocalTs(){ return parseInt(localStorage.getItem('starkle_local_ts')||'0')||0; }
+function gsCachedToken(){ try{ const j=JSON.parse(localStorage.getItem('starkle_sync_token')||'null'); if(j&&j.token&&j.exp&&Date.now()<j.exp-60000) return j.token; }catch(e){} return null; }
+function gsSetToken(t,sec){ try{ localStorage.setItem('starkle_sync_token', JSON.stringify({token:t, exp:Date.now()+((sec||3600)*1000)})); }catch(e){} }
+function gsClearToken(){ try{ localStorage.removeItem('starkle_sync_token'); }catch(e){} }
+
+function gsLoadLib(cb){
+  if(window.google && google.accounts && google.accounts.oauth2){ cb&&cb(); return; }
+  if(!document.getElementById('gsi-lib')){ const s=document.createElement('script'); s.id='gsi-lib'; s.src='https://accounts.google.com/gsi/client'; s.async=true; s.defer=true; document.head.appendChild(s); }
+  const t0=Date.now();
+  (function w(){ if(window.google && google.accounts && google.accounts.oauth2) cb&&cb(); else if(Date.now()-t0<9000) setTimeout(w,150); else toast('\u26a0\ufe0f Couldn\u2019t reach Google \u2014 check your connection'); })();
+}
+function gsGetToken(interactive, cb){
+  const c=gsCachedToken(); if(c){ cb(c); return; }
+  if(!interactive){ cb(null); return; }
+  gsLoadLib(function(){
+    if(!_gsTokenClient){
+      _gsTokenClient=google.accounts.oauth2.initTokenClient({ client_id:GSYNC_CLIENT_ID, scope:GSYNC_SCOPE,
+        callback:function(resp){ const cb2=_gsTokenCb; _gsTokenCb=null;
+          if(resp && resp.access_token){ gsSetToken(resp.access_token, resp.expires_in); cb2&&cb2(resp.access_token); }
+          else cb2&&cb2(null); } });
+    }
+    _gsTokenCb=cb;
+    try{ _gsTokenClient.requestAccessToken({prompt: gsOn()?'':'consent'}); }catch(e){ _gsTokenCb=null; cb(null); }
+  });
+}
+function gsApi(token,url,opts){ opts=opts||{}; opts.headers=Object.assign({Authorization:'Bearer '+token}, opts.headers||{}); return fetch(url,opts); }
+function gsFindFile(token){ return gsApi(token, "https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,modifiedTime)&q="+encodeURIComponent("name='"+GSYNC_FILENAME+"'")).then(r=>r.json()).then(j=>(j.files&&j.files[0])||null); }
+function gsDownload(token,id){ return gsApi(token, "https://www.googleapis.com/drive/v3/files/"+id+"?alt=media").then(r=>r.text()); }
+function gsUploadCreate(token,body){ const meta={name:GSYNC_FILENAME, parents:['appDataFolder']}; const b='-----starkle'+Date.now(); const mp='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+body+'\r\n--'+b+'--'; return gsApi(token, "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {method:'POST', headers:{'Content-Type':'multipart/related; boundary='+b}, body:mp}).then(r=>r.json()); }
+function gsUploadUpdate(token,id,body){ return gsApi(token, "https://www.googleapis.com/upload/drive/v3/files/"+id+"?uploadType=media", {method:'PATCH', headers:{'Content-Type':'application/json'}, body:body}).then(r=>r.json()); }
+function gsPayload(ts){ return JSON.stringify({app:'starkle', ts:ts, state:state}); }
+function gsAdopt(remote, rTs){ state=normalize(remote.state); save(); try{ localStorage.setItem('starkle_local_ts', String(rTs)); }catch(e){} render(); }
+
+function gsConnect(){ gsGetToken(true, function(token){ if(!token){ toast('\u26a0\ufe0f Couldn\u2019t connect to Google'); return; } localStorage.setItem('starkle_sync_on','1'); refreshSyncUI(); gsSyncNow(); }); }
+function gsDisconnect(){ const t=gsCachedToken(); try{ if(t && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(t,function(){}); }catch(e){} gsClearToken(); localStorage.removeItem('starkle_sync_on'); localStorage.removeItem('starkle_sync_fileid'); toast('\u2601\ufe0f Disconnected from Drive'); refreshSyncUI(); }
+
+function gsSyncNow(){
+  if(_gsBusy) return;
+  gsGetToken(true, function(token){
+    if(!token){ toast('\u26a0\ufe0f Google sign-in needed'); return; }
+    localStorage.setItem('starkle_sync_on','1'); _gsBusy=true; refreshSyncUI(); toast('\u2601\ufe0f Syncing\u2026');
+    gsFindFile(token).then(function(file){
+      if(!file){ return gsUploadCreate(token, gsPayload(gsLocalTs()||Date.now())).then(function(res){ if(res&&res.id) localStorage.setItem('starkle_sync_fileid',res.id); toast('\u2601\ufe0f Backed up to your Drive'); }); }
+      localStorage.setItem('starkle_sync_fileid', file.id);
+      return gsDownload(token, file.id).then(function(txt){
+        let remote=null; try{ remote=JSON.parse(txt); }catch(e){}
+        const rTs=(remote&&remote.ts)||0, lTs=gsLocalTs()||0;
+        if(remote && remote.state && rTs>lTs){ gsAdopt(remote, rTs); toast('\u2601\ufe0f Pulled the latest from Drive'); }
+        else { return gsUploadUpdate(token, file.id, gsPayload(lTs||Date.now())).then(function(){ toast('\u2601\ufe0f Your changes are saved to Drive'); }); }
+      });
+    }).catch(function(e){ console.error('sync',e); toast('\u26a0\ufe0f Sync failed \u2014 try again'); })
+      .then(function(){ _gsBusy=false; refreshSyncUI(); });
+  });
+}
+function gsAutoPull(){
+  if(!gsOn()) return; const token=gsCachedToken(); if(!token) return;
+  gsFindFile(token).then(function(file){ if(!file) return; localStorage.setItem('starkle_sync_fileid', file.id);
+    return gsDownload(token, file.id).then(function(txt){ let remote=null; try{ remote=JSON.parse(txt); }catch(e){} const rTs=(remote&&remote.ts)||0, lTs=gsLocalTs()||0; if(remote&&remote.state&&rTs>lTs){ gsAdopt(remote,rTs); toast('\u2601\ufe0f Updated from your other device'); } });
+  }).catch(function(){});
+}
+function syncCardHtml(){
+  return '<div class="section-title">\u2601\ufe0f Google Drive sync</div>'+
+    '<div class="muted" style="margin-bottom:10px">Keep your planner in step across devices by saving it to your own Google Drive (private to your account).</div>'+
+    (gsOn()
+      ? '<div class="muted">\u2705 Connected'+(localStorage.getItem('starkle_sync_fileid')?' \u00b7 backed up to Drive':'')+'</div>'+
+        '<div class="row" style="flex-wrap:wrap;gap:8px;margin-top:8px"><button class="btn gold" onclick="gsSyncNow()"'+(_gsBusy?' disabled':'')+'>\u2601\ufe0f '+(_gsBusy?'Syncing\u2026':'Sync now')+'</button>'+
+        '<button class="btn ghost" onclick="gsDisconnect()">Disconnect</button></div>'+
+        '<div class="muted" style="margin-top:6px">Pulls automatically when you open the app; tap <b>Sync now</b> after making changes to push them to your other devices.</div>'
+      : '<button class="btn gold" onclick="gsConnect()">\u2601\ufe0f Connect Google Drive</button>');
+}
+function refreshSyncUI(){ const el=document.getElementById('gs-sync-card'); if(el) el.innerHTML=syncCardHtml(); }
+
 render();
 maybeFirstRun();
+gsAutoPull();
+
 </script></body></html>
