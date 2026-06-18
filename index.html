@@ -4874,12 +4874,15 @@ function fbInit(){
     _fbUser=u||null; refreshSyncUI();
     if(u){ fbStartSync(); } else if(_fbUnsub){ _fbUnsub(); _fbUnsub=null; }
   });
+  firebase.auth().getRedirectResult().catch(function(e){ if(e&&e.code) console.error('fb redirect', e); });
 }
 function fbSignIn(){
   fbInit();
   if(!_fbReady){ toast('\u2601\ufe0f Loading Google\u2026 try again in a moment'); return; }
   const p=new firebase.auth.GoogleAuthProvider();
-  firebase.auth().signInWithPopup(p).catch(function(e){ console.error('fb signin',e); toast('\u26a0\ufe0f Sign-in failed: '+((e&&e.code)||'error')); });
+  const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
+  if(standalone){ firebase.auth().signInWithRedirect(p).catch(function(e){ toast('\u26a0\ufe0f Sign-in failed: '+((e&&e.code)||'error')); }); return; }
+  firebase.auth().signInWithPopup(p).catch(function(e){ var c=(e&&e.code)||''; if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'||c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request'){ firebase.auth().signInWithRedirect(p).catch(function(e2){ toast('\u26a0\ufe0f Sign-in failed: '+((e2&&e2.code)||'error')); }); } else { console.error('fb signin',e); toast('\u26a0\ufe0f Sign-in failed: '+(c||'error')); } });
 }
 function fbSignOut(){ if(_fbReady) firebase.auth().signOut().then(function(){ toast('Signed out'); refreshSyncUI(); }); }
 function fbDocRef(){ return _fbDb.collection('planners').doc(_fbUser.uid); }
@@ -4921,10 +4924,6 @@ render();
 maybeFirstRun();
 _fbBooting=false;
 fbInit();
-if('serviceWorker' in navigator){
-  var _swReloaded=false;
-  navigator.serviceWorker.addEventListener('controllerchange', function(){ if(_swReloaded) return; _swReloaded=true; location.reload(); });
-  navigator.serviceWorker.register('sw.js').catch(function(){});
-}
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
 
 </script></body></html>
