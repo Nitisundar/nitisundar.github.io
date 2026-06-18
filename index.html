@@ -2479,7 +2479,7 @@ function openNrTask(idx){
     '<div class="field"><label>Task name</label><input type="text" id="rtt-title" value="'+esc(data.title)+'" placeholder="e.g. Brush teeth"></div>'+
     '<div class="field"><label>Stars for completing \u2b50</label><div class="star-stepper"><button type="button" class="step-btn" onclick="stepStars(\'rtt-stars\',-1)">−</button><input type="number" id="rtt-stars" min="1" max="999" value="'+(data.stars||1)+'"><button type="button" class="step-btn" onclick="stepStars(\'rtt-stars\',1)">+</button></div>'+starChips('rtt-stars')+'</div>'+
     '<div class="field"><label>Time (optional) 🕐</label><input type="time" id="rtt-time" value="'+(data.time||'')+'" oninput="rttPenUI()"></div>'+
-    '<div class="field" id="rtt-pen-field" style="display:block"><label class="check-row" style="text-transform:none;letter-spacing:0"><input type="checkbox" id="rtt-latepen"'+(data.latePenalty?' checked':'')+' onchange="rttPenUI()"> Deduct ⭐ if completed late ⏰</label>'+
+    '<div class="field" id="rtt-pen-field" style="display:'+(data.time?'block':'none')+'"><label class="check-row" style="text-transform:none;letter-spacing:0"><input type="checkbox" id="rtt-latepen"'+(data.latePenalty?' checked':'')+' onchange="rttPenUI()"> Deduct ⭐ if completed late ⏰</label>'+
     '<div id="rtt-pen-opts" style="display:'+(data.latePenalty?'block':'none')+';margin-top:6px">'+
       '<div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">'+
       '<span class="muted">Take away</span>'+
@@ -2895,7 +2895,7 @@ function openRtplTask(id, idx){
     '<div class="field"><label>Task name</label><input type="text" id="rtt-title" value="'+esc(data.title)+'" placeholder="e.g. Brush teeth"></div>'+
     '<div class="field"><label>Stars for completing \u2b50</label><div class="star-stepper"><button type="button" class="step-btn" onclick="stepStars(\'rtt-stars\',-1)">−</button><input type="number" id="rtt-stars" min="1" max="999" value="'+(data.stars||1)+'"><button type="button" class="step-btn" onclick="stepStars(\'rtt-stars\',1)">+</button></div>'+starChips('rtt-stars')+'</div>'+
     '<div class="field"><label>Time (optional) 🕐</label><input type="time" id="rtt-time" value="'+(data.time||'')+'" oninput="rttPenUI()"></div>'+
-    '<div class="field" id="rtt-pen-field" style="display:block"><label class="check-row" style="text-transform:none;letter-spacing:0"><input type="checkbox" id="rtt-latepen"'+(data.latePenalty?' checked':'')+' onchange="rttPenUI()"> Deduct ⭐ if completed late ⏰</label>'+
+    '<div class="field" id="rtt-pen-field" style="display:'+(data.time?'block':'none')+'"><label class="check-row" style="text-transform:none;letter-spacing:0"><input type="checkbox" id="rtt-latepen"'+(data.latePenalty?' checked':'')+' onchange="rttPenUI()"> Deduct ⭐ if completed late ⏰</label>'+
     '<div id="rtt-pen-opts" style="display:'+(data.latePenalty?'block':'none')+';margin-top:6px">'+
       '<div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">'+
       '<span class="muted">Take away</span>'+
@@ -3076,7 +3076,7 @@ function openTaskForm(routineId, taskId){
     '<div class="field"><label>Task name</label><input type="text" id="tk-title" value="'+esc(data.title)+'" placeholder="e.g. Brush teeth" oninput="liveSuggest(\'tk\',this.value)"></div>'+
     '<div class="field"><label>Stars for completing ⭐</label><div class="star-stepper"><button type="button" class="step-btn" onclick="stepStars(\'tk-stars\',-1)">−</button><input type="number" id="tk-stars" min="1" max="999" value="'+(data.stars||1)+'"><button type="button" class="step-btn" onclick="stepStars(\'tk-stars\',1)">+</button></div>'+starChips('tk-stars')+'</div>'+
     '<div class="field"><label>Time (optional) 🕐</label><input type="time" id="tk-time" value="'+(data.time||'')+'" oninput="tkPenUI()"></div>'+
-    '<div class="field" id="tk-pen-field" style="display:block"><label class="check-row" style="text-transform:none;letter-spacing:0"><input type="checkbox" id="tk-latepen"'+(data.latePenalty?' checked':'')+' onchange="tkPenUI()"> Deduct ⭐ if completed late ⏰</label>'+
+    '<div class="field" id="tk-pen-field" style="display:'+(data.time?'block':'none')+'"><label class="check-row" style="text-transform:none;letter-spacing:0"><input type="checkbox" id="tk-latepen"'+(data.latePenalty?' checked':'')+' onchange="tkPenUI()"> Deduct ⭐ if completed late ⏰</label>'+
     '<div id="tk-pen-opts" style="display:'+(data.latePenalty?'block':'none')+';margin-top:6px">'+
       '<div class="row" style="gap:6px;align-items:center;flex-wrap:wrap">'+
       '<span class="muted">Take away</span>'+
@@ -3115,12 +3115,17 @@ function tkRepUI(){
   const fn=document.getElementById('tk-rep-forn'); if(fn) fn.style.display=v==='forN'?'block':'none';
 }
 function tkPenUI(){
-  const cb=document.getElementById('tk-latepen'); const on=cb&&cb.checked;
-  const o=document.getElementById('tk-pen-opts'); if(o) o.style.display=on?'block':'none';
+  const hasTime=!!document.getElementById('tk-time').value;
+  document.getElementById('tk-pen-field').style.display=hasTime?'block':'none';
+  const on=document.getElementById('tk-latepen').checked;
+  document.getElementById('tk-pen-opts').style.display=(hasTime&&on)?'block':'none';
 }
 function rttPenUI(){
+  const t=document.getElementById('rtt-time'); if(!t) return;
+  const hasTime=!!t.value;
+  const f=document.getElementById('rtt-pen-field'); if(f) f.style.display=hasTime?'block':'none';
   const cb=document.getElementById('rtt-latepen'); const on=cb&&cb.checked;
-  const o=document.getElementById('rtt-pen-opts'); if(o) o.style.display=on?'block':'none';
+  const o=document.getElementById('rtt-pen-opts'); if(o) o.style.display=(hasTime&&on)?'block':'none';
 }
 function saveTask(routineId, taskId){
   if(needParent()) return;
@@ -4916,6 +4921,10 @@ render();
 maybeFirstRun();
 _fbBooting=false;
 fbInit();
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(function(){}); }
+if('serviceWorker' in navigator){
+  var _swReloaded=false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){ if(_swReloaded) return; _swReloaded=true; location.reload(); });
+  navigator.serviceWorker.register('sw.js').catch(function(){});
+}
 
 </script></body></html>
