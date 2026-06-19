@@ -1891,11 +1891,16 @@ function render(){
   const _hdr=document.querySelector('header'); if(_hdr) _hdr.style.display=(activeTab==='calendar')?'':'none';
   const v=document.getElementById('view');
   let html;
-  if(activeTab==='calendar') html=renderCalendar();
-  else if(activeTab==='tasks') html=renderTasks();
-  else if(activeTab==='rewards') html=renderRewards();
-  else if(activeTab==='lists') html=renderLists();
-  else html=renderFamily();
+  try{
+    if(activeTab==='calendar') html=renderCalendar();
+    else if(activeTab==='tasks') html=renderTasks();
+    else if(activeTab==='rewards') html=renderRewards();
+    else if(activeTab==='lists') html=renderLists();
+    else html=renderFamily();
+  }catch(err){
+    console.error('render error',err);
+    html='<div class="card" style="margin:12px"><div class="section-title">\u26a0\ufe0f Couldn\u2019t draw this screen</div><div class="muted" style="word-break:break-word;white-space:pre-wrap">'+esc(String((err&&err.message)||err)+'\n\n'+((err&&err.stack)||'').split('\n').slice(0,4).join('\n'))+'</div></div>';
+  }
   const TAB_TITLES={tasks:'\u2705 Tasks', rewards:'\u2b50 Rewards', lists:'\ud83d\uddd2\ufe0f Lists', family:vocab().icon+' '+vocab().group};
   const slimTitle=(activeTab!=='calendar' && TAB_TITLES[activeTab])?'<div class="tab-title">'+TAB_TITLES[activeTab]+'</div>':'';
   v.innerHTML=(isPaused()?pauseBanner():'')+slimTitle+html;
