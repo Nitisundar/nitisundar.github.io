@@ -746,6 +746,7 @@ const STICKERS={};
 function suggestSticker(){ return null; }
 function iconHtml(o,size){
   const px=Math.round((size||26)*1.6);   /* emojis ~60% larger across the app */
+  if(o && o.photo){ const s=Math.round((size||26)*1.7); return '<img src="'+o.photo+'" style="width:'+s+'px;height:'+s+'px;border-radius:50%;object-fit:cover;vertical-align:middle;display:inline-block">'; }
   return '<span style="font-size:'+px+'px;line-height:1">'+((o&&o.emoji)||'\u2705')+'</span>';
 }
 let _fbReady=false,_fbUser=null,_fbDb=null,_fbUnsub=null,_fbPushTimer=null,_fbApplying=false,_fbTries=0,_fbBooting=true,_fbSynced=false,_fbDirty=false;
@@ -1923,7 +1924,7 @@ function renderCalendar(){
     const d=addDays(gridStart,i);
     const ds=ymd(d);
     const inMonth=d.getMonth()===m;
-    const evs=state.events.filter(e=>eventOccursOn(e,ds) && (calFilter==='all'||e.memberId===calFilter));
+    const evs=state.events.filter(e=>eventOccursOn(e,ds) && (calFilter==='all'||e.memberId===calFilter) && (calCat==='all'||(e.category||'')===calCat));
     let inner='<span class="dnum">'+d.getDate()+'</span>';
     const nEv=evs.length;
     const showN=nEv>3?4:nEv;                                  /* squeeze in a 4th when busy */
@@ -1941,7 +1942,7 @@ function renderCalendar(){
   const cuList=[];
   for(const e of state.events){
     if(!e.countdown) continue;
-    if(!(calFilter==='all'||e.memberId===calFilter)) continue;
+    if(!(calFilter==='all'||e.memberId===calFilter)) continue; if(!(calCat==='all'||(e.category||'')===calCat)) continue;
     const nd=nextEventOccurrence(e, today);
     if(nd) cuList.push({e, nd});
   }
@@ -1965,7 +1966,7 @@ function renderCalendar(){
     : '';
 
   return '<div class="row" style="margin-bottom:10px"><span class="spacer"></span>'+
-    '<button class="btn small gold" onclick="openEventForm(null)">\uff0b Add event</button></div>'+
+    '<button class="btn small gold" onclick="openEventForm(null)">\uff0b Add event</button></div>'+calCatLegend()+
     '<div class="card">'+
     '<div class="cal-head"><h2>'+monthName+'</h2>'+
     '<div class="cal-nav">'+
@@ -2021,6 +2022,18 @@ function openEventForm(eventId, presetDate, occDs){
   openModal(
     '<div class="modal-title">'+(ev?'✏️ Edit event':'✨ New event')+'</div>'+
     iconField('ev', e, 'Tap to pick a sticker or emoji')+
+    '<input type="hidden" id="ev-photo" value="'+esc(e.photo||'')+'">'+
+    '<div class="field" style="text-align:center">'+
+      '<input type="file" id="ev-photo-file" accept="image/*" style="display:none" onchange="evPhotoPick(this)">'+
+      '<img id="ev-photo-prev" src="'+esc(e.photo||'')+'" style="width:54px;height:54px;border-radius:50%;object-fit:cover;display:'+(e.photo?'inline-block':'none')+';margin-bottom:6px">'+
+      '<div><button type="button" class="btn ghost small" onclick="document.getElementById(\'ev-photo-file\').click()">📷 Use a photo</button> '+
+      '<button type="button" class="btn ghost small" id="ev-photo-clear" style="display:'+(e.photo?'inline-block':'none')+'" onclick="evPhotoClear()">✖ Remove</button></div>'+
+      '<div class="muted" style="margin-top:4px">Pick an emoji above, or upload your own picture instead.</div></div>'+
+    '<div class="field"><label>Category 🏷️</label><select id="ev-cat">'+
+      '<option value=""'+(!e.category?' selected':'')+'>General</option>'+
+      '<option value="birthday"'+(e.category==='birthday'?' selected':'')+'>🎂 Birthday</option>'+
+      '<option value="anniversary"'+(e.category==='anniversary'?' selected':'')+'>💍 Anniversary</option>'+
+    '</select></div>'+
     '<div class="field"><label>What is it?</label><input type="text" id="ev-title" value="'+esc(e.title)+'" placeholder="e.g. Amma\'s birthday 🎂" oninput="liveSuggest(\'ev\',this.value)"></div>'+
     '<div class="field"><label>Date'+((rec.type&&rec.type!=='none')?' (first one)':'')+'</label><input type="date" id="ev-date" value="'+e.date+'"></div>'+
     '<div class="field"><label>Time (optional)</label><input type="time" id="ev-time" value="'+(e.time||'')+'"></div>'+
@@ -2093,6 +2106,20 @@ function readReminder(){
   if(mode==='1day'||mode==='3day') return {mode, at:''};
   return null;
 }
+function evPhotoPick(input){
+  var f=input&&input.files&&input.files[0]; if(!f) return;
+  processPhoto(f, function(dataUrl){
+    var h=document.getElementById('ev-photo'); if(h) h.value=dataUrl;
+    var prev=document.getElementById('ev-photo-prev'); if(prev){ prev.src=dataUrl; prev.style.display='inline-block'; }
+    var c=document.getElementById('ev-photo-clear'); if(c) c.style.display='inline-block';
+  });
+  try{ input.value=''; }catch(e){}
+}
+function evPhotoClear(){
+  var h=document.getElementById('ev-photo'); if(h) h.value='';
+  var prev=document.getElementById('ev-photo-prev'); if(prev){ prev.src=''; prev.style.display='none'; }
+  var c=document.getElementById('ev-photo-clear'); if(c) c.style.display='none';
+}
 function saveEvent(id){
   const title=document.getElementById('ev-title').value.trim();
   const date=document.getElementById('ev-date').value;
@@ -2102,6 +2129,8 @@ function saveEvent(id){
   if(notes.replace(/<br\s*\/?>/gi,'').replace(/&nbsp;/g,'').replace(/<div>\s*<\/div>/gi,'').trim()==='') notes='';
   const icon=readIcon('ev','📌');
   const data={sticker:icon.sticker, emoji:icon.emoji, title, date,
+    photo:(document.getElementById('ev-photo')||{}).value||null,
+    category:(document.getElementById('ev-cat')||{}).value||'',
     time:document.getElementById('ev-time').value,
     memberId:document.getElementById('ev-member').value,
     countdown:document.getElementById('ev-cd').checked,
@@ -2195,7 +2224,7 @@ function eventEndOfDay(occDs){ const d=fromYmd(occDs); d.setHours(23,59,59,999);
 function activeReminders(){
   const now=new Date(), today=todayYmd(), out=[];
   for(const e of state.events){
-    if(calFilter!=='all' && e.memberId!==calFilter) continue;
+    if(calFilter!=='all' && e.memberId!==calFilter) continue; if(calCat!=='all' && (e.category||'')!==calCat) continue;
     if(!e.reminder || !e.reminder.mode || e.reminder.mode==='none') continue;
     const occ=nextEventOccurrence(e, today) || (e.date>=today?e.date:null);
     if(!occ) continue;
@@ -4257,6 +4286,9 @@ function subDel(i){ _subEdit.splice(i,1); subRenderEditor(); }
 /* shared-calendar member filter */
 let calFilter='all';
 function setCalFilter(id){ calFilter=id; render(); }
+let calCat='all';
+function setCalCat(c){ calCat=c; render(); }
+function calCatLegend(){ function chip(v,label){ return '<span class="cal-leg'+(calCat===v?' sel':'')+'" onclick="setCalCat(\''+v+'\')">'+label+'</span>'; } return '<div class="cal-legend" style="margin-bottom:8px">'+chip('all','All')+chip('birthday','🎂 Birthdays')+chip('anniversary','💍 Anniversaries')+'</div>'; }
 
 /* effective per-day ownership (chore swaps reassign a task for one day) */
 function effOwner(tid, ds){
