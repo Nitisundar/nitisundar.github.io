@@ -1791,11 +1791,20 @@ function toast(msg){
   document.body.appendChild(t);
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.remove(),2200);
 }
+let _modalOpen=false;
+window.addEventListener('popstate', function(){
+  var root=document.getElementById('modal-root');
+  if(root && root.classList.contains('open')){ root.classList.remove('open'); _modalOpen=false; }
+});
 function openModal(html){
   document.getElementById('modal-box').innerHTML=html;
   document.getElementById('modal-root').classList.add('open');
+  if(!_modalOpen){ _modalOpen=true; try{ history.pushState({modal:true}, ''); }catch(e){} }
 }
-function closeModal(){ document.getElementById('modal-root').classList.remove('open'); }
+function closeModal(){
+  document.getElementById('modal-root').classList.remove('open');
+  if(_modalOpen){ _modalOpen=false; if(history.state && history.state.modal){ try{ history.back(); }catch(e){} } }
+}
 /* ============================================================
    ICON FIELD — sticker picker + emoji picker in one
    ============================================================ */
