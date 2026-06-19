@@ -860,7 +860,7 @@ function migrateV1(v1){
   }
   return d;
 }
-function save(){ const s=JSON.stringify(state); let prev=null; try{ prev=localStorage.getItem(LS_KEY); }catch(e){} localStorage.setItem(LS_KEY, s); if(s!==prev && !_fbBooting){ fbSetTs(Date.now()); if(typeof fbSchedulePush==='function') fbSchedulePush(); } }
+function save(){ const s=JSON.stringify(state); let prev=null; try{ prev=localStorage.getItem(LS_KEY); }catch(e){} localStorage.setItem(LS_KEY, s); if(s!==prev && !_fbBooting && !_fbApplying){ _fbDirty=true; try{ window.__starkleDefault=false; }catch(e){} fbSetTs(Date.now()); if(typeof fbSchedulePush==='function') fbSchedulePush(); } }
 function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
 /* ---------- Helpers ---------- */
 function ymd(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
@@ -4869,7 +4869,7 @@ function refreshSyncUI(){ const el=document.getElementById('gs-sync-card'); if(e
    =========================================================== */
 const FB_CONFIG={apiKey:"AIzaSyBBnBxKjgH_9y6myhUOZyCf0yNdepn7Fls",authDomain:"starkle-a4c8c.firebaseapp.com",projectId:"starkle-a4c8c",storageBucket:"starkle-a4c8c.firebasestorage.app",messagingSenderId:"717573908839",appId:"1:717573908839:web:dd24e312279bddba5627c2"};
 const FB_TS='starkle_fb_ts';
-let _fbReady=false,_fbUser=null,_fbDb=null,_fbUnsub=null,_fbPushTimer=null,_fbApplying=false,_fbTries=0,_fbBooting=true,_fbSynced=false;
+let _fbReady=false,_fbUser=null,_fbDb=null,_fbUnsub=null,_fbPushTimer=null,_fbApplying=false,_fbTries=0,_fbBooting=true,_fbSynced=false,_fbDirty=false;
 function fbLocalTs(){ return parseInt(localStorage.getItem(FB_TS)||'0')||0; }
 function fbSetTs(v){ try{ localStorage.setItem(FB_TS,String(v)); }catch(e){} }
 function fbWriteLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
@@ -4900,27 +4900,31 @@ function fbIsEmptyish(st){ try{ return (!st.members||st.members.length<=1) && (!
 function fbStartSync(){
   if(!_fbUser||!_fbDb) return;
   if(_fbUnsub){ _fbUnsub(); _fbUnsub=null; }
-  let first=true;
-  _fbUnsub=fbDocRef().onSnapshot(function(snap){
+  let firstServer=true;
+  _fbUnsub=fbDocRef().onSnapshot({includeMetadataChanges:true}, function(snap){
+    const fromCache=!!(snap.metadata&&snap.metadata.fromCache);
     const d=snap.data();
     if(d && d.state){
-      const rTs=d.ts||0, lTs=fbLocalTs()||0;
       let st=null; try{ st=normalize(JSON.parse(d.state)); }catch(e){}
-      const cloudHasData = st && !fbIsEmptyish(st);
-      const localDefault = (window.__starkleDefault===true) || fbIsEmptyish(state);
-      const takeCloud = st && (rTs>lTs || (first && localDefault && cloudHasData));
-      if(takeCloud){
-        state=st; _fbApplying=true; fbWriteLocal(); fbSetTs(rTs); _fbApplying=false; render(); if(first) toast('\u2601\ufe0f Loaded from the cloud');
+      if(st){
+        const rTs=d.ts||0, lTs=fbLocalTs()||0;
+        const cloudHasData=!fbIsEmptyish(st);
+        const localDefault=(window.__starkleDefault===true)||fbIsEmptyish(state);
+        const take = !_fbDirty && cloudHasData && ( (rTs>lTs) || (!fromCache && firstServer) || localDefault );
+        if(take){
+          state=st; _fbApplying=true; fbWriteLocal(); fbSetTs(rTs); _fbApplying=false; render();
+          if(!fromCache && firstServer) toast('\u2601\ufe0f Loaded from the cloud');
+        }
       }
-      first=false;
-    } else { first=false; if(!fbIsEmptyish(state)) fbPush(); }
-    _fbSynced=true;
+      if(!fromCache) firstServer=false;
+    } else if(!fromCache){ firstServer=false; if(!fbIsEmptyish(state)) fbPush(); }
+    if(!fromCache) _fbSynced=true;
   }, function(err){ console.error('fb snapshot',err); });
 }
 function fbPush(){
   if(!_fbUser||!_fbDb) return;
   const ts=fbLocalTs()||Date.now();
-  fbDocRef().set({ state:JSON.stringify(state), ts:ts, by:_fbUser.uid }, {merge:true}).catch(function(e){ console.error('fb push',e); });
+  fbDocRef().set({ state:JSON.stringify(state), ts:ts, by:_fbUser.uid }, {merge:true}).then(function(){ _fbDirty=false; }).catch(function(e){ console.error('fb push',e); });
 }
 function fbSchedulePush(){ if(!_fbUser||_fbApplying||!_fbSynced) return; if(_fbPushTimer) clearTimeout(_fbPushTimer); _fbPushTimer=setTimeout(function(){ _fbPushTimer=null; fbPush(); }, 1500); }
 function syncCardHtml(){
