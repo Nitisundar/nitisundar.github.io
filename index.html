@@ -748,6 +748,7 @@ function iconHtml(o,size){
   const px=Math.round((size||26)*1.6);   /* emojis ~60% larger across the app */
   return '<span style="font-size:'+px+'px;line-height:1">'+((o&&o.emoji)||'\u2705')+'</span>';
 }
+let _fbReady=false,_fbUser=null,_fbDb=null,_fbUnsub=null,_fbPushTimer=null,_fbApplying=false,_fbTries=0,_fbBooting=true,_fbSynced=false,_fbDirty=false;
 let state=load();
 try{ if(typeof pruneActivity==='function' && pruneActivity()) save(); }catch(e){}
 /* If a parental PIN is set, always start locked so the PIN is required to unlock editing */
@@ -4874,7 +4875,7 @@ function refreshSyncUI(){ const el=document.getElementById('gs-sync-card'); if(e
    =========================================================== */
 const FB_CONFIG={apiKey:"AIzaSyBBnBxKjgH_9y6myhUOZyCf0yNdepn7Fls",authDomain:"starkle-a4c8c.firebaseapp.com",projectId:"starkle-a4c8c",storageBucket:"starkle-a4c8c.firebasestorage.app",messagingSenderId:"717573908839",appId:"1:717573908839:web:dd24e312279bddba5627c2"};
 const FB_TS='starkle_fb_ts';
-let _fbReady=false,_fbUser=null,_fbDb=null,_fbUnsub=null,_fbPushTimer=null,_fbApplying=false,_fbTries=0,_fbBooting=true,_fbSynced=false,_fbDirty=false;
+/* FB state vars are declared near the top of the script to avoid a boot-time TDZ */
 function fbLocalTs(){ return parseInt(localStorage.getItem(FB_TS)||'0')||0; }
 function fbSetTs(v){ try{ localStorage.setItem(FB_TS,String(v)); }catch(e){} }
 function fbWriteLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
