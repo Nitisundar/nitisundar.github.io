@@ -661,6 +661,11 @@ body[data-theme="night"] .goal-fill{ background:linear-gradient(90deg,#C7CBDA,#F
 .av-emoji.sel{ border-color:var(--accent); background:var(--sand) }
 </style>
 <body>
+<div id="boot-splash" style="position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#f3f4e9;transition:opacity .3s ease;font-family:system-ui,-apple-system,sans-serif">
+  <div style="font-size:66px;line-height:1">✦</div>
+  <div style="margin-top:12px;font-weight:800;font-size:22px;color:#7a8b66;letter-spacing:.5px">Starkle</div>
+  <div style="margin-top:6px;font-size:14px;color:#9aa888">Loading your planner…</div>
+</div>
 
 <aside id="sidebar">
   <div class="logo" id="logo" title="Double-tap to lock/unlock editing">✦</div>
@@ -1886,6 +1891,7 @@ document.getElementById('sidebar').addEventListener('click',e=>{
   activeTab=b.dataset.tab; render();
 });
 
+function hideSplash(){ var sp=document.getElementById('boot-splash'); if(sp){ sp.style.opacity='0'; sp.style.pointerEvents='none'; setTimeout(function(){ if(sp&&sp.parentNode) sp.parentNode.removeChild(sp); }, 350); } }
 function render(){
   applyTheme();
   document.querySelectorAll('#sidebar button[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===activeTab));
@@ -1906,6 +1912,7 @@ function render(){
   const TAB_TITLES={tasks:'\u2705 Tasks', rewards:'\u2b50 Rewards', lists:'\ud83d\uddd2\ufe0f Lists', family:vocab().icon+' '+vocab().group};
   const slimTitle=(activeTab!=='calendar' && TAB_TITLES[activeTab])?'<div class="tab-title">'+TAB_TITLES[activeTab]+'</div>':'';
   v.innerHTML=(isPaused()?pauseBanner():'')+slimTitle+html;
+  if(typeof hideSplash==='function' && typeof fbIsEmptyish==='function' && !fbIsEmptyish(state)) hideSplash();
   updateDueGlow();
 }
 /* ============================================================
@@ -4928,9 +4935,7 @@ function fbSignIn(){
   fbInit();
   if(!_fbReady){ toast('\u2601\ufe0f Loading Google\u2026 try again in a moment'); return; }
   const p=new firebase.auth.GoogleAuthProvider();
-  const standalone=(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone===true;
-  if(standalone){ firebase.auth().signInWithRedirect(p).catch(function(e){ toast('\u26a0\ufe0f Sign-in failed: '+((e&&e.code)||'error')); }); return; }
-  firebase.auth().signInWithPopup(p).catch(function(e){ var c=(e&&e.code)||''; if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'||c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request'){ firebase.auth().signInWithRedirect(p).catch(function(e2){ toast('\u26a0\ufe0f Sign-in failed: '+((e2&&e2.code)||'error')); }); } else { console.error('fb signin',e); toast('\u26a0\ufe0f Sign-in failed: '+(c||'error')); } });
+  firebase.auth().signInWithPopup(p).catch(function(e){ console.error('fb signin',e); toast('\u26a0\ufe0f Sign-in failed: '+((e&&e.code)||'error')); });
 }
 function fbSignOut(){ if(_fbReady) firebase.auth().signOut().then(function(){ toast('Signed out'); refreshSyncUI(); }); }
 function fbDocRef(){ return _fbDb.collection('planners').doc(_fbUser.uid); }
@@ -4977,6 +4982,7 @@ function syncCardHtml(){
 }
 
 render();
+setTimeout(function(){ try{ hideSplash(); }catch(e){} }, 5000);
 maybeFirstRun();
 _fbBooting=false;
 fbInit();
