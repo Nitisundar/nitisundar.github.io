@@ -4914,9 +4914,12 @@ function refreshSyncUI(){ const el=document.getElementById('gs-sync-card'); if(e
    =========================================================== */
 const FB_CONFIG={apiKey:"AIzaSyBBnBxKjgH_9y6myhUOZyCf0yNdepn7Fls",authDomain:"starkle-a4c8c.firebaseapp.com",projectId:"starkle-a4c8c",storageBucket:"starkle-a4c8c.firebasestorage.app",messagingSenderId:"717573908839",appId:"1:717573908839:web:dd24e312279bddba5627c2"};
 const FB_TS='starkle_fb_ts';
+const FB_OWNER='starkle_fb_owner';
 /* FB state vars are declared near the top of the script to avoid a boot-time TDZ */
 function fbLocalTs(){ return parseInt(localStorage.getItem(FB_TS)||'0')||0; }
 function fbSetTs(v){ try{ localStorage.setItem(FB_TS,String(v)); }catch(e){} }
+function fbOwner(){ try{ return localStorage.getItem(FB_OWNER)||null; }catch(e){ return null; } }
+function fbSetOwner(uid){ try{ if(uid) localStorage.setItem(FB_OWNER,uid); else localStorage.removeItem(FB_OWNER); }catch(e){} }
 function fbWriteLocal(){ try{ localStorage.setItem(LS_KEY, JSON.stringify(state)); }catch(e){} }
 function fbInit(){
   if(_fbReady) return;
@@ -4955,19 +4958,26 @@ function fbStartSync(){
         const localDefault=(window.__starkleDefault===true)||fbIsEmptyish(state);
         const take = !_fbDirty && cloudHasData && ( (rTs>lTs) || (!fromCache && firstServer) || localDefault );
         if(take){
-          state=st; _fbApplying=true; fbWriteLocal(); fbSetTs(rTs); _fbApplying=false; render();
+          state=st; _fbApplying=true; fbWriteLocal(); fbSetTs(rTs); _fbApplying=false; fbSetOwner(_fbUser.uid); render();
           if(!fromCache && firstServer) toast('\u2601\ufe0f Loaded from the cloud');
         }
       }
       if(!fromCache) firstServer=false;
-    } else if(!fromCache){ firstServer=false; if(!fbIsEmptyish(state)) fbPush(); }
+    } else if(!fromCache){
+      firstServer=false;
+      const _own=fbOwner();
+      if(!fbIsEmptyish(state)){
+        if(_own && _own!==_fbUser.uid){ state=defaults(); window.__starkleDefault=true; _fbApplying=true; fbWriteLocal(); fbSetTs(0); _fbApplying=false; fbSetOwner(_fbUser.uid); render(); toast('✨ Started a fresh planner for this account'); }
+        else { fbSetOwner(_fbUser.uid); fbPush(); }
+      } else { fbSetOwner(_fbUser.uid); }
+    }
     if(!fromCache) _fbSynced=true;
   }, function(err){ console.error('fb snapshot',err); });
 }
 function fbPush(){
   if(!_fbUser||!_fbDb) return;
   const ts=fbLocalTs()||Date.now();
-  fbDocRef().set({ state:JSON.stringify(state), ts:ts, by:_fbUser.uid }, {merge:true}).then(function(){ _fbDirty=false; }).catch(function(e){ console.error('fb push',e); });
+  fbDocRef().set({ state:JSON.stringify(state), ts:ts, by:_fbUser.uid }, {merge:true}).then(function(){ _fbDirty=false; fbSetOwner(_fbUser.uid); }).catch(function(e){ console.error('fb push',e); });
 }
 function fbSchedulePush(){ if(!_fbUser||_fbApplying||!_fbSynced) return; if(_fbPushTimer) clearTimeout(_fbPushTimer); _fbPushTimer=setTimeout(function(){ _fbPushTimer=null; fbPush(); }, 1500); }
 function syncCardHtml(){
