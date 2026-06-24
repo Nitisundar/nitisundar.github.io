@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starkle — Quick Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#262C42;
+    --navy-2:#323a5a;
+    --gold:#F4B740;
+    --gold-deep:#e0a01f;
+    --cream:#FAF6EE;
+    --card:#ffffff;
+    --ink:#2A2F45;
+    --ink-soft:#565c75;
+    --line:#ece6d8;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Nunito',system-ui,-apple-system,sans-serif;
+    font-size:17px;
+    line-height:1.6;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 18px 56px}
+
+  /* ---- Hero: the night sky from the app icon ---- */
+  .hero{
+    position:relative;
+    margin:0 -18px 26px;
+    padding:54px 24px 48px;
+    background:radial-gradient(120% 120% at 50% 0%, var(--navy-2) 0%, var(--navy) 60%);
+    text-align:center;
+    overflow:hidden;
+    border-bottom-left-radius:30px;
+    border-bottom-right-radius:30px;
+  }
+  .hero .stars{position:absolute;inset:0;pointer-events:none}
+  .hero .stars i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff;opacity:.5}
+  .hero .stars i:nth-child(1){top:18%;left:14%}
+  .hero .stars i:nth-child(2){top:30%;left:78%;width:2px;height:2px}
+  .hero .stars i:nth-child(3){top:60%;left:22%;width:2px;height:2px}
+  .hero .stars i:nth-child(4){top:24%;left:48%;width:2px;height:2px;opacity:.35}
+  .hero .stars i:nth-child(5){top:70%;left:84%}
+  .hero .stars i:nth-child(6){top:48%;left:8%;width:2px;height:2px;opacity:.35}
+  .spark{
+    font-size:60px;line-height:1;color:var(--gold);
+    text-shadow:0 0 22px rgba(244,183,64,.55);
+    animation:twinkle 3.2s ease-in-out infinite;
+  }
+  @keyframes twinkle{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.12);opacity:.82}}
+  .hero h1{
+    font-family:'Fredoka',sans-serif;font-weight:700;
+    color:#fff;font-size:40px;margin:10px 0 4px;letter-spacing:.5px;
+  }
+  .hero p{color:#cfd3e6;margin:0;font-size:18px;font-weight:600}
+  .hero .lead{
+    margin:16px auto 0;max-width:30ch;color:#aeb4d0;font-size:15.5px;font-weight:600;
+  }
+
+  /* ---- Cards ---- */
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:20px 20px 6px;
+    margin:0 0 16px;
+    box-shadow:0 6px 18px rgba(38,44,66,.05);
+  }
+  h2{
+    font-family:'Fredoka',sans-serif;font-weight:600;
+    font-size:21px;margin:0 0 10px;color:var(--ink);
+    display:flex;align-items:center;gap:10px;
+  }
+  h2 .ico{font-size:24px}
+  ul{list-style:none;margin:0;padding:0}
+  li{
+    position:relative;padding:0 0 14px 26px;color:var(--ink-soft);font-weight:600;
+  }
+  li::before{
+    content:"✦";position:absolute;left:0;top:0;
+    color:var(--gold-deep);font-size:14px;line-height:1.7;
+  }
+  li b{color:var(--ink)}
+
+  /* tab list gets its own marker style */
+  .tabs li::before{content:"";}
+  .tabs li{padding-left:0}
+  .tabs .t{display:inline-block;min-width:1.7em;text-align:center;margin-right:4px}
+
+  .note{
+    background:#fff8e9;border:1px solid #f3e2b5;border-radius:14px;
+    padding:12px 14px;margin:4px 0 16px;font-size:15px;font-weight:600;color:#7a5e16;
+  }
+  .note b{color:#5c4710}
+
+  footer{
+    text-align:center;color:var(--ink-soft);font-weight:700;
+    margin-top:30px;font-size:15px;
+  }
+  footer .s{color:var(--gold-deep)}
+
+  a{color:var(--gold-deep);font-weight:800;text-decoration:none}
+  a:focus-visible,li:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:6px}
+
+  @media (max-width:420px){
+    body{font-size:16px}
+    .hero h1{font-size:34px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .spark{animation:none}
+  }
+  @media print{
+    body{background:#fff}
+    .hero{background:var(--navy) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .card{box-shadow:none;break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="stars"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="spark">✦</div>
+    <h1>Starkle</h1>
+    <p>Your family's star-powered planner</p>
+    <div class="lead">Kids do their tasks, earn stars, and trade them for rewards.</div>
+  </header>
+
+  <section class="card">
+    <h2><span class="ico">🌟</span>What is Starkle?</h2>
+    <ul>
+      <li>A friendly planner for the whole family.</li>
+      <li>Everyone gets their own profile.</li>
+      <li>Finish tasks and routines to earn <b>⭐ stars</b>.</li>
+      <li>Save up stars and swap them for rewards you choose.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="ico">📲</span>Put it on your phone</h2>
+    <ul>
+      <li>Open the link in your browser (<b>Chrome</b> works best).</li>
+      <li>Tap the browser menu, then <b>“Add to Home screen”</b>.</li>
+      <li>It opens like a real app — and works without internet.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="ico">🧭</span>The tabs, at a glance</h2>
+    <ul class="tabs">
+      <li><span class="t">📅</span><b>Calendar</b> — where the app opens; events, birthdays and anniversaries.</li>
+      <li><span class="t">✅</span><b>Tasks</b> — tick off jobs to earn stars.</li>
+      <li><span class="t">⭐</span><b>Rewards</b> — treats to “buy” with stars.</li>
+      <li><span class="t">📝</span><b>Lists</b> — shared lists like shopping or to-dos.</li>
+      <li><span class="t">⚙️</span><b>Settings</b> — people, backup and sign-in.</li>
+      <li><span class="t">🔒</span><b>Lock</b> — the parent lock (more below).</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="ico">⭐</span>Stars &amp; rewards</h2>
+    <ul>
+      <li>Tap a task or routine to mark it <b>done</b> — stars are added for you.</li>
+      <li>Set up rewards with a star price, e.g. <b>“Movie night = 20 ⭐”</b>.</li>
+      <li>When someone has saved enough, they redeem the reward.</li>
+      <li>Set <b>family goals</b> with a progress bar everyone can watch fill up.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="ico">🔒</span>Parent lock</h2>
+    <ul>
+      <li>Set a <b>PIN</b> so kids can't change stars or settings.</li>
+      <li>Tap the lock to switch between <b>parent</b> and <b>kid</b> mode.</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2><span class="ico">☁️</span>Syncing &amp; sharing <span style="font-weight:500;font-size:14px;color:var(--ink-soft)">(optional)</span></h2>
+    <ul>
+      <li>Works fully <b>without signing in</b> — data stays on your phone.</li>
+      <li>Want it on your phone <i>and</i> tablet? <b>Sign in with Google</b> to sync them.</li>
+    </ul>
+    <div class="note"><b>Good to know:</b> each Google account has its own separate planner. Signing in on a new account starts a fresh one — it doesn't show someone else's data.</div>
+  </section>
+
+  <section class="card">
+    <h2><span class="ico">💾</span>Keep your data safe</h2>
+    <ul>
+      <li><b>Settings → Export backup</b> saves a copy as a file.</li>
+      <li><b>Import backup</b> brings it back, or moves it to a new phone.</li>
+    </ul>
+  </section>
+
+  <footer>Made with <span class="s">✦</span> for our family</footer>
+
+</div>
+</body>
+</html>

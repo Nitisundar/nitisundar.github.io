@@ -687,7 +687,7 @@ body[data-theme="night"] .goal-fill{ background:linear-gradient(90deg,#C7CBDA,#F
   <div style="margin-top:6px;font-size:14px;color:#9aa888">Loading your planner…</div>
 </div>
 <script>
-window.addEventListener('error',function(ev){try{var m=(ev&&ev.message)||'unknown error';var ln=(ev&&ev.lineno)?(' (line '+ev.lineno+')'):'';var b=document.getElementById('err-banner');if(!b){b=document.createElement('div');b.id='err-banner';b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:200000;background:#b91c1c;color:#fff;font:13px/1.45 -apple-system,system-ui,sans-serif;padding:12px 14px;white-space:pre-wrap;word-break:break-word;box-shadow:0 4px 14px rgba(0,0,0,.3)';document.documentElement.appendChild(b);}b.textContent='\u26a0\ufe0f '+m+ln+'  \u2014  please screenshot this';var sp=document.getElementById('boot-splash');if(sp&&sp.parentNode)sp.parentNode.removeChild(sp);}catch(e){}});
+window.addEventListener('error',function(ev){try{var m=(ev&&ev.message)||'';if(!m||m.indexOf('Script error')>-1)return;var ln=(ev&&ev.lineno)?(' (line '+ev.lineno+')'):'';var b=document.getElementById('err-banner');if(!b){b=document.createElement('div');b.id='err-banner';b.style.cssText='position:fixed;left:0;right:0;top:0;z-index:200000;background:#b91c1c;color:#fff;font:13px/1.45 -apple-system,system-ui,sans-serif;padding:12px 14px;white-space:pre-wrap;word-break:break-word;box-shadow:0 4px 14px rgba(0,0,0,.3)';document.documentElement.appendChild(b);}b.textContent='\u26a0\ufe0f '+m+ln+'  \u2014  please screenshot this';var sp=document.getElementById('boot-splash');if(sp&&sp.parentNode)sp.parentNode.removeChild(sp);}catch(e){}});
 </script>
 
 <aside id="sidebar">
@@ -697,7 +697,7 @@ window.addEventListener('error',function(ev){try{var m=(ev&&ev.message)||'unknow
   <button data-tab="tasks"><span class="ic">✅</span>Tasks</button>
   <button data-tab="rewards"><span class="ic">⭐</span>Rewards</button>
   <button data-tab="lists"><span class="ic">🗒️</span>Lists</button>
-  <button data-tab="family"><span class="ic">👨‍👩‍👧‍👦</span>Family</button>
+  <button data-tab="family"><span class="ic">⚙️</span>Settings</button>
   <div class="push"></div>
   <div id="nav-clock" title="Date & time"></div>
   <button id="fs-btn" onclick="toggleFullscreen()"><span class="ic">⛶</span>Full screen</button>
@@ -1192,7 +1192,7 @@ function applyTheme(){
   document.body.classList.remove('nav-left','nav-right','nav-top','nav-bottom');
   document.body.classList.add('nav-'+np);
   const _fb=document.querySelector('#sidebar button[data-tab="family"]');
-  if(_fb) _fb.innerHTML='<span class="ic">'+vocab().icon+'</span>'+vocab().group;
+  if(_fb) _fb.innerHTML='<span class="ic">⚙️</span>Settings';
 }
 function setFontScale(v){
   state.settings.fontScale=v; save(); render();
@@ -1934,7 +1934,7 @@ function render(){
     console.error('render error',err);
     html='<div class="card" style="margin:12px"><div class="section-title">\u26a0\ufe0f Couldn\u2019t draw this screen</div><div class="muted" style="word-break:break-word;white-space:pre-wrap">'+esc(String((err&&err.message)||err)+'\n\n'+((err&&err.stack)||'').split('\n').slice(0,4).join('\n'))+'</div></div>';
   }
-  const TAB_TITLES={tasks:'\u2705 Tasks', rewards:'\u2b50 Rewards', lists:'\ud83d\uddd2\ufe0f Lists', family:vocab().icon+' '+vocab().group};
+  const TAB_TITLES={tasks:'\u2705 Tasks', rewards:'\u2b50 Rewards', lists:'\ud83d\uddd2\ufe0f Lists', family:'⚙️ Settings'};
   const slimTitle=(activeTab!=='calendar' && TAB_TITLES[activeTab])?'<div class="tab-title">'+TAB_TITLES[activeTab]+'</div>':'';
   v.innerHTML=(isPaused()?pauseBanner():'')+slimTitle+html;
   if(typeof hideSplash==='function' && typeof fbIsEmptyish==='function' && !fbIsEmptyish(state)) hideSplash();
