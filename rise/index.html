@@ -1085,12 +1085,12 @@ $('#swScrim').onclick=e=>{ if(e.target===$('#swScrim')) $('#swScrim').classList.
 
 /* ---------- cloud sync (Firebase — same setup as Starkle) ---------- */
 const FIREBASE_CONFIG = {
-  apiKey: "",            // ← paste these 6 values from your Firebase project settings
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyBBnBxKjgH_9y6myhUOZyCf0yNdepn7Fls",            // ← paste these 6 values from your Firebase project settings
+  authDomain: "starkle-a4c8c.firebaseapp.com",
+  projectId: "starkle-a4c8c",
+  storageBucket: "starkle-a4c8c.firebasestorage.app",
+  messagingSenderId: "717573908839",
+  appId: "1:717573908839:web:90b3e238e4d549755627c2""
 };
 let fb=null, fbUser=null, pushT=null, lastSync=0;
 function fbReady(){ return !!FIREBASE_CONFIG.apiKey && typeof firebase!=='undefined'; }
