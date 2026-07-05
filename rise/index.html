@@ -12,6 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Rise">
+<script>try{var _t=localStorage.getItem('rise.theme');_t=_t?JSON.parse(_t):((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');document.documentElement.setAttribute('data-theme',_t);document.documentElement.style.colorScheme=_t;}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -20,12 +21,32 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
   :root{
+    color-scheme:light;
     --paper:#F7F5F1; --card:#FFFFFF; --ink:#22362F; --ink-soft:#5C6B64;
     --pine:#3E6B5E; --pine-deep:#2E4F45; --sage:#DCE7E1; --sage-line:#C5D6CD;
     --amber:#D98B5F; --amber-soft:#F6E5D8; --gold:#C9A24B;
     --shadow:0 1px 2px rgba(34,54,47,.06), 0 8px 24px rgba(34,54,47,.06);
     --r:18px;
   }
+  [data-theme="dark"]{
+    color-scheme:dark;
+    --paper:#141310; --card:#1E1C17; --ink:#ECE7DD; --ink-soft:#A29C90;
+    --pine:#63AB93; --pine-deep:#7CC0A8; --sage:#2B332E; --sage-line:#3C4740;
+    --amber:#E0A077; --amber-soft:#372B21; --gold:#D2B25E;
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.4);
+  }
+  [data-theme="dark"] nav{ background:rgba(20,19,16,.94); border-top-color:#2C2A23; }
+  [data-theme="dark"] .nav-i{ color:#7E877F; }
+  [data-theme="dark"] .item, [data-theme="dark"] .bx, [data-theme="dark"] .hrow, [data-theme="dark"] .wex{ border-bottom-color:#2C2A23; }
+  [data-theme="dark"] .box{ background:var(--paper); }
+  [data-theme="dark"] .field input, [data-theme="dark"] .field select, [data-theme="dark"] .frow input{ background:#141310; border-color:#3C392F; color:var(--ink); }
+  [data-theme="dark"] .btn-down, [data-theme="dark"] .editlink, [data-theme="dark"] .rung, [data-theme="dark"] .dot, [data-theme="dark"] .reps, [data-theme="dark"] .wreps, [data-theme="dark"] .tadj button, [data-theme="dark"] .tpresets button, [data-theme="dark"] .weeknav button, [data-theme="dark"] .repbtn, [data-theme="dark"] .swopt{ background:#26241D; border-color:#3C392F; color:var(--ink); }
+  [data-theme="dark"] .rung{ color:var(--ink-soft); }
+  [data-theme="dark"] .dot{ color:#6C665C; }
+  [data-theme="dark"] .equip{ background:#2E2A1C; }
+  [data-theme="dark"] .rm{ background:#3A241C; }
+  [data-theme="dark"] .toast{ background:#33302A; color:#fff; }
+  [data-theme="dark"] .addbtn{ border-color:#3C392F; }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
   html,body{margin:0; padding:0;}
   body{
@@ -275,6 +296,7 @@
       <h1>Rise<span class="leaf"> ·</span></h1>
     </div>
     <div class="topright">
+      <button class="syncbtn" id="themeBtn" title="Theme">🌙</button>
       <button class="syncbtn" id="syncBtn" title="Cloud sync">☁</button>
       <div class="streak-chip"><span class="flame">🔥</span><span id="streakNum">0</span><small>day streak</small></div>
     </div>
@@ -1091,9 +1113,25 @@ function chooseVariant(i){ const ex=S.ex.find(x=>x.id===swEx); if(!ex) return; e
 $('#swClose').onclick=()=>$('#swScrim').classList.remove('show');
 $('#swScrim').onclick=e=>{ if(e.target===$('#swScrim')) $('#swScrim').classList.remove('show'); };
 
+/* ---------- theme ---------- */
+let theme='light';
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  document.documentElement.style.colorScheme = t;
+  const m=document.querySelector('meta[name="theme-color"]'); if(m) m.setAttribute('content', t==='dark' ? '#141310' : '#3E6B5E');
+  const b=$('#themeBtn'); if(b) b.textContent = t==='dark' ? '☀️' : '🌙';
+}
+async function initTheme(){
+  let saved=null; try{ saved=await Store.get('rise.theme'); }catch(e){}
+  if(saved!=='light' && saved!=='dark'){ saved=(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'; }
+  theme=saved; applyTheme(theme);
+}
+$('#themeBtn').onclick=()=>{ theme = theme==='dark'?'light':'dark'; Store.set('rise.theme', theme); applyTheme(theme); };
+initTheme();
+
 /* ---------- cloud sync (Firebase — same setup as Starkle) ---------- */
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyBBnBxKjgH_9y6myhUOZyCf0yNdepn7Fls",            // ← paste these 6 values from your Firebase project settings
+  apiKey: "AIzaSyBBnBxKjgH_9y6myhUOZyCf0yNdepn7Fls",
   authDomain: "starkle-a4c8c.firebaseapp.com",
   projectId: "starkle-a4c8c",
   storageBucket: "starkle-a4c8c.firebasestorage.app",
@@ -1156,6 +1194,4 @@ $('#syncScrim').onclick=e=>{ if(e.target===$('#syncScrim')) $('#syncScrim').clas
 })();
 </script>
 </body>
-</html> 
-
-
+</html>
