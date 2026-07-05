@@ -1,1 +1,1754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#141019">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Chic">
+<title>Chic — Your Wardrobe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Italiana&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#1A1521; --surf:#241E2F; --surf2:#2F273C; --text:#EDE9F2; --mut:#9B93A8;
+  --acc:#C9B8FF; --acc-ink:#141019; --acc2:#E3C9A0; --line:rgba(255,255,255,.08);
+  --danger:#E07070; --acc2-ink:#141019; --shadow:0 8px 30px rgba(0,0,0,.45); --r:18px;
+}
+html[data-theme="light"]{
+  --bg:#DCD3E8; --surf:#F0EBF6; --surf2:#CDC2DD; --text:#221D2B; --mut:#6E6680;
+  --acc:#7A5CC9; --acc-ink:#FFFFFF; --acc2:#A8823F; --line:rgba(20,10,40,.1);
+  --danger:#C05050; --acc2-ink:#FFFFFF; --shadow:0 8px 26px rgba(60,40,110,.14);
+}
+/* ---- palettes ---- */
+html[data-pal="coffee"]{
+  --bg:#231911; --surf:#302317; --surf2:#3D2C1F; --text:#F2E8DD; --mut:#A8927E;
+  --acc:#E89A3C; --acc-ink:#241408; --acc2:#D9B98A; --line:rgba(255,235,210,.09);
+}
+html[data-pal="coffee"][data-theme="light"]{
+  --bg:#ECE1CF; --surf:#FAF5EC; --surf2:#E0D2BB; --text:#2C1E12; --mut:#8A7460;
+  --acc:#A05E1E; --acc-ink:#FFFFFF; --acc2:#8A6A3F; --line:rgba(70,40,10,.12);
+  --shadow:0 8px 26px rgba(90,60,20,.14);
+}
+html[data-pal="navy"]{
+  --bg:#141D2C; --surf:#1D283D; --surf2:#27334B; --text:#E7EDF6; --mut:#8B99B0;
+  --acc:#8AB4F8; --acc-ink:#0C1524; --acc2:#D9C08A; --line:rgba(200,220,255,.09);
+}
+html[data-pal="navy"][data-theme="light"]{
+  --bg:#DFE7F1; --surf:#F6F9FD; --surf2:#D2DCEA; --text:#17233A; --mut:#5F7089;
+  --acc:#2B5FA8; --acc-ink:#FFFFFF; --acc2:#8A6A3F; --line:rgba(20,50,100,.12);
+  --shadow:0 8px 26px rgba(30,60,120,.13);
+}
+html[data-pal="forest"]{
+  --bg:#17231B; --surf:#213028; --surf2:#2C3D32; --text:#E9F1EA; --mut:#8FA895;
+  --acc:#8AD6A5; --acc-ink:#0E1A12; --acc2:#D8C08A; --line:rgba(210,240,215,.09);
+}
+html[data-pal="forest"][data-theme="light"]{
+  --bg:#DFECE2; --surf:#F5FAF6; --surf2:#D2E2D6; --text:#1B2A1F; --mut:#5F7A66;
+  --acc:#2E7D4F; --acc-ink:#FFFFFF; --acc2:#8A6A3F; --line:rgba(20,70,40,.12);
+  --shadow:0 8px 26px rgba(30,90,50,.13);
+}
+html[data-pal="noir"]{
+  --bg:#1B191E; --surf:#25222A; --surf2:#302C36; --text:#F0EDF2; --mut:#9C96A3;
+  --acc:#E8A0B4; --acc-ink:#221218; --acc2:#CFC9D6; --line:rgba(255,240,250,.08);
+}
+html[data-pal="noir"][data-theme="light"]{
+  --bg:#D9D2DF; --surf:#EFEBF2; --surf2:#CAC2D2; --text:#242028; --mut:#726B7A;
+  --acc:#B4506E; --acc-ink:#FFFFFF; --acc2:#7A7383; --line:rgba(50,20,40,.11);
+  --shadow:0 8px 26px rgba(120,50,80,.12);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html{font-size:19px}
+body{margin:0; background:var(--bg); color:var(--text); font-family:'Jost',system-ui,sans-serif;
+  font-weight:400; letter-spacing:.01em; transition:background .3s,color .3s; padding-bottom:86px;
+  overscroll-behavior-y:contain}
+h1,h2,h3{font-weight:400; margin:0}
+button{font-family:inherit; color:inherit; background:none; border:none; cursor:pointer; font-size:1rem}
+input,select,textarea{font-family:inherit; font-size:1rem; color:var(--text); background:var(--surf2);
+  border:1px solid var(--line); border-radius:12px; padding:10px 12px; width:100%; outline:none}
+input:focus,select:focus{border-color:var(--acc)}
+::placeholder{color:var(--mut)}
+img{-webkit-user-drag:none; user-select:none}
 
+/* ---------- header ---------- */
+header{display:flex; justify-content:center; padding:calc(34px + env(safe-area-inset-top)) 20px 4px}
+.wordmark{font-family:'Italiana',serif; font-size:2rem; letter-spacing:.32em; text-transform:uppercase;
+  font-weight:700; -webkit-text-stroke:.6px currentColor; text-indent:.32em; white-space:nowrap}
+.wordmark span{color:var(--acc)}
+.hbtns{display:flex; gap:6px}
+.iconbtn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--surf);
+  border:1px solid var(--line); font-size:1.05rem}
+.tagline{padding:0 20px 12px; color:var(--mut); font-size:.82rem; letter-spacing:.14em; text-transform:uppercase; text-align:center}
+.topbar{display:flex; justify-content:center; gap:12px; padding:0 20px 12px}
+
+/* ---------- tab bar ---------- */
+nav{position:fixed; bottom:0; left:0; right:0; z-index:40; background:color-mix(in srgb,var(--surf) 88%, transparent);
+  backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border-top:1px solid var(--line);
+  display:flex; padding:8px 8px calc(8px + env(safe-area-inset-bottom))}
+nav button{flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; padding:6px 0;
+  color:var(--mut); font-size:.68rem; letter-spacing:.1em; text-transform:uppercase; border-radius:14px}
+nav button .ni{font-size:1.25rem; line-height:1}
+nav button.on{color:var(--acc)}
+nav button:focus-visible{outline:2px solid var(--acc)}
+
+/* ---------- chips & filters ---------- */
+.chiprow{display:flex; gap:8px; overflow-x:auto; padding:6px 20px 12px; scrollbar-width:none}
+.chiprow::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto; padding:7px 16px; border-radius:999px; background:var(--surf); border:1px solid var(--line);
+  color:var(--mut); font-size:.85rem; letter-spacing:.04em; transition:all .15s}
+.chip.on{background:var(--acc); color:var(--acc-ink); border-color:var(--acc)}
+.chip.mini{padding:5px 12px; font-size:.78rem}
+.cdot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid var(--line)}
+.searchbar{display:flex; align-items:center; gap:8px; margin:6px 20px 2px; background:var(--surf); border:1px solid var(--line); border-radius:999px; padding:0 14px}
+.searchbar span{color:var(--acc2); font-size:1.1rem}
+.searchbar input{border:none; background:none; padding:11px 0; border-radius:0}
+.searchbar input:focus{border:none}
+.searchbar button{color:var(--mut); font-size:.9rem; padding:6px}
+.filters{display:flex; gap:8px; padding:6px 20px 2px}
+.filters select{flex:1; min-width:0; padding:9px 10px; border-radius:999px; background:var(--surf);
+  font-size:.82rem; appearance:none; text-align:center; text-align-last:center}
+
+/* ---------- closet grid ---------- */
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:14px; padding:4px 20px 20px}
+.card{background:var(--surf); border-radius:var(--r); overflow:hidden; border:1px solid var(--line);
+  position:relative; box-shadow:var(--shadow); cursor:pointer}
+.card .ph{aspect-ratio:3/4; width:100%; object-fit:cover; display:block; background:var(--surf2)}
+.card .meta{padding:9px 12px 11px}
+.card .nm{font-size:.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.card .sub{font-size:.72rem; color:var(--mut); letter-spacing:.08em; text-transform:uppercase; margin-top:2px;
+  display:flex; align-items:center; gap:6px}
+.badge{position:absolute; top:8px; left:8px; background:rgba(0,0,0,.55); color:#fff; backdrop-filter:blur(4px);
+  font-size:.68rem; padding:4px 9px; border-radius:999px; letter-spacing:.06em}
+.favtag{position:absolute; top:8px; right:8px; font-size:1rem; color:var(--acc2); filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+.empty{padding:60px 30px; text-align:center; color:var(--mut)}
+.empty .big{font-family:'Italiana',serif; font-size:1.6rem; color:var(--text); margin-bottom:8px}
+
+.nudge{margin:2px 20px 10px; padding:11px 14px; border-radius:14px; font-size:.86rem;
+  background:color-mix(in srgb, var(--acc) 14%, var(--surf)); border:1px solid color-mix(in srgb, var(--acc) 35%, transparent);
+  display:flex; align-items:center; gap:10px; justify-content:space-between}
+.nudge button{color:var(--mut); flex:0 0 auto}
+/* ---------- FAB ---------- */
+.fab{position:fixed; right:18px; bottom:calc(92px + env(safe-area-inset-bottom)); z-index:41; width:58px; height:58px;
+  border-radius:50%; background:var(--acc2); color:var(--acc2-ink); font-size:1.7rem; box-shadow:var(--shadow);
+  display:grid; place-items:center; transition:transform .15s}
+.fab:active{transform:scale(.92)}
+
+/* ---------- sheets / modals ---------- */
+.veil{position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:60; opacity:0; pointer-events:none; transition:opacity .25s}
+.veil.open{opacity:1; pointer-events:auto}
+.sheet{position:fixed; left:0; right:0; bottom:0; z-index:61; background:var(--bg); border-radius:26px 26px 0 0;
+  max-height:92dvh; overflow-y:auto; transform:translateY(105%); transition:transform .3s cubic-bezier(.3,.9,.3,1);
+  padding:10px 20px calc(26px + env(safe-area-inset-bottom)); border-top:1px solid var(--line)}
+.sheet.open{transform:translateY(0)}
+.grab{width:44px;height:4px;border-radius:4px;background:var(--line);margin:6px auto 14px}
+.sheet h2{font-family:'Italiana',serif; font-size:1.5rem; letter-spacing:.08em; margin-bottom:14px}
+.frow{margin-bottom:14px}
+.frow label{display:block; font-size:.74rem; color:var(--mut); letter-spacing:.14em; text-transform:uppercase; margin-bottom:7px}
+.wrapchips{display:flex; flex-wrap:wrap; gap:8px}
+.pickph{width:100%; aspect-ratio:3/2; border-radius:16px; border:1.5px dashed var(--line); background:var(--surf);
+  display:grid; place-items:center; color:var(--mut); overflow:hidden; position:relative}
+.pickph img{width:100%; height:100%; object-fit:cover; position:absolute; inset:0}
+.btn{display:block; width:100%; text-align:center; padding:14px; border-radius:14px; background:var(--acc);
+  color:var(--acc-ink); font-weight:500; letter-spacing:.08em; text-transform:uppercase; font-size:.9rem}
+.btn.ghost{background:var(--surf); color:var(--text); border:1px solid var(--line)}
+.btn.ghost.on{border-color:var(--acc); color:var(--acc)}
+.btn.danger{background:transparent; color:var(--danger); border:1px solid var(--danger)}
+.btn:disabled{opacity:.4}
+.row2{display:flex; gap:10px}
+.row2>*{flex:1}
+
+/* ---------- detail ---------- */
+.dph{width:100%; aspect-ratio:3/4; object-fit:cover; border-radius:18px; background:var(--surf2)}
+.dtitle{font-family:'Italiana',serif; font-size:1.6rem; margin:14px 0 2px}
+.dsub{color:var(--mut); font-size:.8rem; letter-spacing:.12em; text-transform:uppercase; margin-bottom:12px}
+.stars{display:flex; gap:6px; font-size:1.5rem; margin:8px 0 14px}
+.stars button{color:var(--mut)} .stars button.on{color:var(--acc2)}
+.statline{display:flex; gap:10px; margin-bottom:14px}
+.stat{flex:1; background:var(--surf); border:1px solid var(--line); border-radius:14px; padding:10px; text-align:center}
+.stat .v{font-size:1.15rem} .stat .k{font-size:.66rem; color:var(--mut); letter-spacing:.12em; text-transform:uppercase}
+
+/* ---------- studio (zoom deck) ---------- */
+.studio{padding:0 0 10px; position:relative}
+.slotchips{display:flex; gap:8px; overflow-x:auto; padding:2px 20px 10px; scrollbar-width:none}
+.slotchips::after{content:""; flex:0 0 12px}
+.slotchips::-webkit-scrollbar{display:none}
+.slotchips .chip{position:relative}
+.slotchips .chip.done::after{content:""; position:absolute; top:4px; right:8px; width:6px; height:6px;
+  border-radius:50%; background:var(--acc2)}
+.deck{display:flex; gap:16px; overflow-x:auto; scroll-snap-type:x mandatory; padding:14px calc(50vw - 33vw) 10px;
+  scrollbar-width:none; min-height:60vw}
+.deck::-webkit-scrollbar{display:none}
+.dcard{flex:0 0 66vw; max-width:330px; aspect-ratio:3/4; border-radius:22px; overflow:hidden;
+  scroll-snap-align:center; background:var(--surf); border:1.5px solid var(--line); position:relative;
+  transition:border-color .2s, box-shadow .2s; box-shadow:var(--shadow)}
+.dcard img{width:100%; height:100%; object-fit:cover}
+.dcard.none{display:grid; place-items:center; color:var(--mut); letter-spacing:.1em; text-transform:uppercase; font-size:.85rem}
+.dcard.centered{border-color:var(--acc); box-shadow:0 0 0 2px var(--acc), var(--shadow)}
+.dcard .dnm{position:absolute; bottom:0; left:0; right:0; padding:26px 14px 12px; color:#fff; font-size:.95rem;
+  background:linear-gradient(transparent, rgba(0,0,0,.65))}
+.deckhint{text-align:center; color:var(--mut); font-size:.75rem; letter-spacing:.1em; text-transform:uppercase; padding-bottom:4px}
+/* corner look preview */
+.peek{position:fixed; right:12px; top:calc(272px + env(safe-area-inset-top)); z-index:30; display:flex; flex-direction:column; gap:6px; max-height:60vh; overflow-y:auto; scrollbar-width:none}
+.peek::-webkit-scrollbar{display:none}
+.peek button{flex:0 0 auto; width:44px; height:52px; border-radius:12px; overflow:hidden; background:var(--surf);
+  border:1.5px dashed var(--line); position:relative}
+.peek button img{position:absolute; inset:0; width:100%; height:100%; object-fit:cover}
+.peek button:has(img){border-style:solid}
+.peek button.cur{border-color:var(--acc)}
+.peek .xrm{position:absolute; top:1px; right:1px; z-index:2; width:16px; height:16px; border-radius:50%;
+  background:rgba(0,0,0,.55); color:#fff; font-size:.6rem; font-style:normal; display:grid; place-items:center}
+.peek .addslot{border-style:dashed; color:var(--mut); font-size:1.2rem; display:grid; place-items:center; height:44px}
+.studiobar{display:flex; gap:10px; padding:8px 20px 4px}
+.studiobar .btn{padding:12px}
+.suggcard{background:var(--surf); border:1px solid var(--line); border-radius:16px; padding:12px; margin-bottom:12px}
+.suggcard .hrow{margin-bottom:10px}
+@media (prefers-reduced-motion:reduce){ .dcard{transition:none} .sheet{transition:none} }
+
+/* ---------- looks ---------- */
+.lookcard .collage{aspect-ratio:1/1; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:2px; background:var(--surf2)}
+.lookcard .collage img{width:100%; height:100%; object-fit:cover}
+.lookcard .collage.n1{grid-template-columns:1fr; grid-template-rows:1fr}
+.lookcard .collage.n2{grid-template-rows:1fr}
+.lookcard .collage.n3 img:first-child{grid-row:span 2}
+.minirate{color:var(--acc2); font-size:.75rem; letter-spacing:2px}
+.rateblock{margin:6px 0 14px}
+.raterow{display:flex; align-items:center; gap:12px; margin-bottom:4px}
+.ratelbl{width:72px; font-size:.72rem; color:var(--mut); letter-spacing:.14em; text-transform:uppercase}
+.raterow .stars{margin:0}
+
+/* ---------- insights ---------- */
+.ins{padding:0 20px 24px}
+.panel{background:var(--surf); border:1px solid var(--line); border-radius:var(--r); padding:16px; margin-bottom:16px}
+.panel h3{font-family:'Italiana',serif; font-size:1.25rem; letter-spacing:.06em; margin-bottom:4px}
+.panel .note{color:var(--mut); font-size:.8rem; margin-bottom:12px}
+.hrow{display:flex; gap:10px; overflow-x:auto; scrollbar-width:none; padding-bottom:4px}
+.hrow::-webkit-scrollbar{display:none}
+.thumb{flex:0 0 84px}
+.thumb img{width:84px; height:104px; object-fit:cover; border-radius:12px; border:1px solid var(--line)}
+.thumb .t{font-size:.68rem; color:var(--mut); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.bar{height:8px; border-radius:8px; background:var(--surf2); overflow:hidden; margin:5px 0 10px}
+.bar i{display:block; height:100%; background:var(--acc)}
+.catlbl{display:flex; justify-content:space-between; font-size:.8rem; color:var(--mut)}
+.heat{display:grid; grid-template-columns:repeat(14,1fr); gap:4px}
+.heat i{aspect-ratio:1; border-radius:4px; background:var(--surf2)}
+.heat i.on{background:var(--acc)}
+.cpw{display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:.9rem}
+.cpw:last-child{border-bottom:none}
+.cpw .amt{color:var(--acc2)}
+/* ---------- plan calendar ---------- */
+.calhead{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px}
+.cal{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
+.cal.dow{margin-bottom:4px; text-align:center; color:var(--mut); font-size:.68rem; letter-spacing:.1em}
+.cal .day{aspect-ratio:1; border-radius:10px; background:var(--surf2); border:1px solid transparent;
+  position:relative; overflow:hidden; font-size:.72rem; padding:0}
+.cal .day .n{position:absolute; top:3px; left:5px; z-index:2; line-height:1}
+.cal .day.today{border-color:var(--acc)}
+.cal .day.has{background:color-mix(in srgb, var(--acc) 18%, var(--surf2))}
+.cal .day.has .n{background:color-mix(in srgb, var(--bg) 65%, transparent); border-radius:6px; padding:1px 4px}
+.dthumb{position:absolute; inset:0}
+.dthumb img{width:100%;height:100%;object-fit:cover; opacity:.85}
+.dmore{position:absolute; right:3px; bottom:3px; z-index:2; font-size:.6rem; background:var(--acc);
+  color:var(--acc-ink); border-radius:999px; padding:1px 5px; line-height:1.4}
+
+.toast{position:fixed; left:50%; transform:translateX(-50%) translateY(20px); bottom:calc(100px + env(safe-area-inset-bottom));
+  background:var(--text); color:var(--bg); padding:10px 20px; border-radius:999px; font-size:.88rem; z-index:80;
+  opacity:0; pointer-events:none; transition:all .3s}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+.hidden{display:none!important}
+.palrow{display:flex; align-items:center; gap:14px; width:100%; padding:12px; border-radius:14px;
+  background:var(--surf); border:1px solid var(--line); margin-bottom:10px; font-size:1rem; text-align:left}
+.palrow.on{border-color:var(--acc)}
+.palsw{width:52px; height:34px; border-radius:10px; display:grid; place-items:center; border:1px solid var(--line)}
+.palsw i{width:16px; height:16px; border-radius:50%; display:block}
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="wordmark">Ch<span>i</span>c</h1>
+</header>
+<div class="tagline" id="tagline">Your closet, curated.</div>
+<div class="topbar">
+  <button class="iconbtn" id="profBtn" aria-label="Switch closet">👤</button>
+  <button class="iconbtn" id="themeBtn" aria-label="Toggle dark or light">◐</button>
+  <button class="iconbtn" id="fsBtn" aria-label="Fullscreen">⛶</button>
+</div>
+
+<main id="view"></main>
+
+<button class="fab hidden" id="fab" aria-label="Add item">+</button>
+
+<nav>
+  <button data-tab="closet" class="on"><span class="ni">▤</span>Closet</button>
+  <button data-tab="studio"><span class="ni">✦</span>Studio</button>
+  <button data-tab="looks"><span class="ni">❥</span>Looks</button>
+  <button data-tab="plan"><span class="ni">▦</span>Plan</button>
+  <button data-tab="insights"><span class="ni">◔</span>Insights</button>
+</nav>
+
+<div class="veil" id="veil"></div>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileIn" accept="image/*" class="hidden">
+<input type="file" id="camIn" accept="image/*" capture="environment" class="hidden">
+<input type="file" id="wishIn" accept="image/*" class="hidden">
+<input type="file" id="importIn" accept="application/json,.json" class="hidden">
+
+<script>
+"use strict";
+/* ---- app icon (scarf) embedded once; wire favicon, home-screen icon & manifest ---- */
+const ICON="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAMAAABrrFhUAAADAFBMVEVYapLck6KkocTm3+JWGxVbWGWbajteMGqhnaicZJzb3d0fPZOjqZGbl6nYrsWqp6zWeaEnFxrGOS/im27cxJ5YWKtuaJXflrXlssp6mKM4Qjt4iLCMOH6FcZp0dACbGBKirce90s9/f//TVktxFXGiPoG3TkGapHn/f3//qqquXa6url3lqcMAAGofQJJ3Y4lVqqqLeZu7wqX//38AAP9iVDyqVVX/AAD/cf/cpL7LzrrGzLFVVVV///+usue04Kq84er/AP//VaoAVVU5YF8AVapVqlV5ha6VpcS/wZ+0wdL/AH/EvczAytjw6Nn48ub17eEAAADp2soPJzHVxrUpR07LuKfnVo53ilIKGiVUdnJVNHrMqZGDik1JaW4WMjswUqbsx69siIcZOUPTUpErSqIzVFmyp5XMiG8rSJkLFBuMVkiwt6/wp5DStJTPl2+MmJDUpXQzVpE2KSVseHJuOIawZ1GNd0jW1MuvR42RqKR1RlHxuaV3lZPqt5Oxh3HsiHDv1LnNZ1KROCsrGhZINjBYNYGvRzfMTIxoOWuxWUfzlXrQmYZOVlWRZjyPhnSsmIoHCxLymoSSQ45sV1KzdVdNUaXNeWXKWEWTo5iveGdqgnNuaWU0Ihw2W2WRaE8tNjglPEORWjvPzMVSSkccQku0lXTJdVhzNi+KPIdELCdPKnOMeW08YmyNi4WPRjerNytvZFr+/v6zUJzlaFE7Y4Tqe2bow5SurKSCkVS0wrtuUKSRUKHodVrKiViZs7DjqXR+kFFsSpGKTqHVg6i1xsR1KySPGRJTQzuPJRyFTEfPk1uPLCKveaORmGyzhVlwTqR0U4auonpRSJiwZpKsiINqOlWOWouvUzlwJRzLSTtHXWF3GROXeJCZo3hzRDyOamKYc6KUocW2s5Zneqpvhafry8Zqe1V/f3/VdJtcgYOqLCKoUKDjnLXNa5Wto8XmaZlUT6Ta0bpdgG/48N7lsntYeFyLapjGUj7Wnb1qRW6pbWHInsHMq6fiWkeoJRxZCZ2MAAABAHRSTlPz7v8n//r//1v///6e9f8P+v////8Dratl7/+c/5oC/1v/Av8D///TAgMDA4oC/3MDcWMCAf8DAQJwM1EDAh8dHgEDA/8DA3iD/0sCI0n///8A///////+/v///v/+///+//////7////+//////////////////////////////////////7////////////////////+///////////////////////////+////////CP////////7//////////v3//f////////////z///3////////////////8///////+////Av7/////////////////////+////////NSIzAAAYJZJREFUeNrFvXlAnNeVJ4piKXGceHeSTtLpdHf6pZeZ6W26p7d5s719u9/lo6pG4HLhgqiqBEVRuKpRGQHFGjqIchUYwiooDAIal0AobgmrY1l2otV6UmKPMlqcSNNOO4md1XYmHrudvHPu/n1VIJT5411jNkHxnd89+zn33LLym63D3+Ufbrv9j/7gU2Uf/frXv/78O++88zyurz8PX/DPNl3/eSvrZz/72X/a0vrhf/qhub7nWF/96se2fexjv3LbYfbQv/c7NyWv7Cb//nuM+Nv/4KNlzz//0ucffPDzDz75IKwnn8QP+LVaf72F9bebrccf3XD9zabrc//RtX7843vuQRTg0f/sdw//dwDwJx+Bd7f90ae+/hIn+fPF66+3tpyUPo7/m+vRR2+B+M/9zefU+o8brx//+Hsf+wvE4D8c/mUB+C3c+48+/xLba0bufwcEJgaPCxy2CMGjTvKBfgOCzUH43sd+Bcj/V4d/GQB+D8kvw61HnkcIHiwNwS8BACwXDzy+VR5gNG8VAMTgq/8cyP/dWwbgsCAfCOb0a9ofvHUA/tak//ESa9P9f9Sx/3/joP6mACAEHwNq7r41AED4by97iSs8sUry/y+h/UqRfytK4HOfu0UAAIJtIAgbyEFJAA7/Vvltn9rBtPyDigkcKv+W2f/xEqpvS/L/6Ga0b4V6AcFtjKu3BsB3cfsffFIwv0k72oLN1wfM9YUPfKF4/fUX/vZXfxU44Vfxw6+yT8WCT/8Htm7ZECp47tkQgntAFfzu1gD4rfLDH3UwP1cBSN6D4PH8TKwPsndy/ZdN1/97i+uee7761XvwHSz+fqvrnu/98IelGQOZ4PcObwGAf1F+d5mTfrbzD379m3feZd9BrZJrg28X/xSVP01p8StQ+CYVn+DnFv+S8p+mavFfl29UvmeLUPvVbT/43g9LgLDtV8r/7PDN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";
+(function installIcons(){
+  const head=document.head;
+  const link=(rel,href,extra)=>{ const l=document.createElement("link"); l.rel=rel; l.href=href; if(extra)Object.assign(l,extra); head.appendChild(l); };
+  link("icon", ICON, {type:"image/png"});
+  link("apple-touch-icon", ICON);
+  try{
+    const manifest={ name:"Chic", short_name:"Chic", display:"standalone", start_url:".",
+      background_color:"#141019", theme_color:"#141019",
+      icons:[{src:ICON, sizes:"256x256", type:"image/png", purpose:"any maskable"}] };
+    const url=URL.createObjectURL(new Blob([JSON.stringify(manifest)],{type:"application/manifest+json"}));
+    link("manifest", url);
+  }catch(e){}
+})();
+/* ============ constants ============ */
+const CATS = [
+  {id:"top",     lbl:"Top"},
+  {id:"bottom",  lbl:"Bottom"},
+  {id:"dress",   lbl:"One-piece"},
+  {id:"saree",   lbl:"Saree"},
+  {id:"blouse",  lbl:"Blouse"},
+  {id:"outerwear",lbl:"Layer"},
+  {id:"footwear",lbl:"Footwear"},
+  {id:"accessory",lbl:"Accessory"}
+];
+const COLORS = [
+  ["Black","#1a1a1a"],["White","#f5f5f5"],["Grey","#9a9a9a"],["Beige","#d9c7a7"],
+  ["Brown","#8b5e3c"],["Red","#d64545"],["Pink","#e88fb0"],["Orange","#e8853c"],
+  ["Yellow","#e6c34a"],["Green","#5a9e5f"],["Olive","#7a7d4a"],["Teal","#3d9a9a"],
+  ["Blue","#4a7dd6"],["Navy","#2c3e6b"],["Purple","#8b6bc7"],["Gold","#c9a24b"]
+];
+const OCCS = ["Daily","Work","Festive","Party","Travel","Home","Lounge"];
+const SIZES = ["XS","S","M","L","XL","XXL","Free"];
+const SUBS_BY_CAT = {
+  top:      ["T-shirt","Shirt","Kurti","Kurta","Blouse top","Sweater","Sweatshirt","Crop top","Tank"],
+  bottom:   ["Jeans","Pants","Trousers","Shorts","Tracks","Leggings","Skirt","Palazzo","Churidar"],
+  dress:    ["Casual","Maxi","Midi","Gown","Frock","Jumpsuit"],
+  outerwear:["Jacket","Cardigan","Coat","Shrug","Blazer","Dupatta"],
+  footwear: ["Flats","Heels","Sneakers","Sandals","Boots","Juttis","Slippers"],
+  accessory:["Earrings","Necklace","Ring","Bangles","Hair","Glasses","Hat","Bag","Belt","Watch","Other"]
+};
+function subsFor(cat){ return SUBS_BY_CAT[cat] || []; }
+const SUBS = SUBS_BY_CAT.accessory; // legacy alias (accessory add-slot)
+const SEASONS = ["Summer","Winter","All-season"];
+const subLbl = s=>s||"";
+const TAGLINES = {closet:"Your closet, curated.", studio:"Compose a look.", looks:"Saved looks.", plan:"Dress the days ahead.", insights:"Know your wardrobe."};
+
+/* ============ indexeddb ============ */
+let db;
+function idb(){ return new Promise((res,rej)=>{
+  const r = indexedDB.open("chic",3);
+  r.onupgradeneeded = e=>{
+    const d = e.target.result;
+    if(!d.objectStoreNames.contains("items")) d.createObjectStore("items",{keyPath:"id"});
+    if(!d.objectStoreNames.contains("looks")) d.createObjectStore("looks",{keyPath:"id"});
+    if(!d.objectStoreNames.contains("plans")) d.createObjectStore("plans",{keyPath:"id"});
+    if(!d.objectStoreNames.contains("trips")) d.createObjectStore("trips",{keyPath:"id"});
+    if(!d.objectStoreNames.contains("wishes")) d.createObjectStore("wishes",{keyPath:"id"});
+  };
+  r.onsuccess = e=>{ db=e.target.result; res(); };
+  r.onerror = ()=>rej(r.error);
+});}
+function put(store,obj){ if(!obj.pid) obj.pid=activePid; obj.up=Date.now(); return new Promise((res,rej)=>{
+  const t = db.transaction(store,"readwrite"); t.objectStore(store).put(obj);
+  t.oncomplete=res; t.onerror=()=>rej(t.error);
+});}
+function del(store,id){ return new Promise((res,rej)=>{
+  const t = db.transaction(store,"readwrite"); t.objectStore(store).delete(id);
+  t.oncomplete=res; t.onerror=()=>rej(t.error);
+});}
+function all(store){ return new Promise((res,rej)=>{
+  const r = db.transaction(store).objectStore(store).getAll();
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+});}
+
+/* ============ profiles ============ */
+const PEMOJI=["👤","👧","👦","🧕","👩","👨","🐣","🌸","⭐","🎀"];
+let profiles = JSON.parse(localStorage.getItem("chicProfiles")||"null") ||
+  [{id:"p1", name:"My closet", emoji:"👤"}];
+let activePid = localStorage.getItem("chicActivePid") || profiles[0].id;
+if(!profiles.some(p=>p.id===activePid)) activePid=profiles[0].id;
+if(localStorage.getItem("chicPal") && !profiles[0].pal){ profiles[0].pal=localStorage.getItem("chicPal"); localStorage.removeItem("chicPal"); }
+function saveProfiles(){
+  localStorage.setItem("chicProfiles", JSON.stringify(profiles));
+  localStorage.setItem("chicActivePid", activePid);
+}
+function activeProfile(){ return profiles.find(p=>p.id===activePid)||profiles[0]; }
+function updateProfBtn(){ const b=$("#profBtn"); if(b) b.textContent=activeProfile().emoji; }
+async function reloadProfile(){
+  const [ai,al,ap,at,aw] = await Promise.all([all("items"),all("looks"),all("plans"),all("trips"),all("wishes")]);
+  items=ai.filter(x=>x.pid===activePid); looks=al.filter(x=>x.pid===activePid);
+  plans=ap.filter(x=>x.pid===activePid); trips=at.filter(x=>x.pid===activePid);
+  wishes=aw.filter(x=>x.pid===activePid);
+  sel={}; extraSlots=[]; filt={cat:"all",occ:null,color:null,sub:null,season:null,size:null,fav:false,comfy:false,stylish:false,q:""};
+  applyPal(activeProfile().pal); updateProfBtn(); render();
+}
+function profileSheet(){
+  openSheet(`<h2>Closets</h2>
+    <div class="note" style="color:var(--mut);margin-bottom:12px">Each closet keeps its own pieces, looks, plans, trips — and its own colour. Tap ✎ to change a closet's palette.</div>
+    ${profiles.map(p=>`<div class="palrow ${p.id===activePid?"on":""}">
+      <button data-sw="${p.id}" style="display:flex;align-items:center;gap:14px;flex:1;text-align:left">
+        <span class="palsw" style="font-size:1.2rem;display:grid;place-items:center">${p.emoji}</span>
+        <span>${esc(p.name)}</span>${p.id===activePid?'<span style="margin-left:auto;color:var(--acc)">✓</span>':""}
+      </button>
+      <button data-pedit="${p.id}" style="color:var(--mut);padding:0 8px;font-size:1rem" aria-label="Rename">✎</button>
+      ${profiles.length>1?`<button data-pdel="${p.id}" style="color:var(--danger);padding:0 6px">✕</button>`:""}
+    </div>`).join("")}
+    <div class="frow" style="margin-top:16px"><label>New closet</label>
+      <input id="np_name" placeholder="e.g. Tara">
+      <div class="wrapchips" style="margin-top:8px" id="np_emo">${PEMOJI.map((e,i)=>`<button class="chip mini ${i===0?"on":""}" data-v="${e}">${e}</button>`).join("")}</div>
+    </div>
+    <button class="btn" id="np_add">＋ Add closet</button>
+    <div style="height:1px;background:var(--line);margin:20px 0 16px"></div>
+    <div class="frow"><label>Backup &amp; restore</label>
+      <div class="row2"><button class="btn ghost" id="exportBtn">⬇ Export</button><button class="btn ghost" id="importBtn">⬆ Import</button></div>
+      <div class="note" style="color:var(--mut);margin-top:6px">Save everything — all closets, photos included — to a file you keep safe, or restore from one.</div></div>`);
+  $("#exportBtn").onclick=exportAll;
+  $("#importBtn").onclick=()=>$("#importIn").click();
+  $("#sheet").querySelectorAll("[data-sw]").forEach(b=>b.onclick=async ()=>{
+    activePid=b.dataset.sw; saveProfiles(); closeSheet(); await reloadProfile();
+    toast("Switched to "+activeProfile().name);
+  });
+  $("#sheet").querySelectorAll("[data-pedit]").forEach(b=>b.onclick=()=>{
+    const p=profiles.find(x=>x.id===b.dataset.pedit); if(p) profileEditSheet(p);
+  });
+  $("#sheet").querySelectorAll("[data-pdel]").forEach(b=>b.onclick=async ()=>{
+    const p=profiles.find(x=>x.id===b.dataset.pdel);
+    if(!confirm(`Delete "${p.name}" and everything in it? This can't be undone.`))return;
+    for(const st of ["items","looks","plans","trips","wishes"]){
+      const rows=await all(st);
+      for(const r of rows) if(r.pid===p.id) await del(st,r.id);
+    }
+    profiles=profiles.filter(x=>x.id!==p.id);
+    if(activePid===p.id) activePid=profiles[0].id;
+    saveProfiles(); closeSheet(); await reloadProfile(); toast("Closet deleted");
+  });
+  $("#np_emo").onclick=e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    $("#np_emo").querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); b.classList.add("on"); };
+  $("#np_add").onclick=async ()=>{
+    const name=$("#np_name").value.trim(); if(!name){ toast("Give it a name"); return; }
+    const p={id:uid(), name, emoji:$("#np_emo .chip.on")?.dataset.v||"👤"};
+    profiles.push(p); activePid=p.id; saveProfiles();
+    closeSheet(); await reloadProfile(); toast(name+"'s closet is ready ✨");
+  };
+}
+
+function profileEditSheet(p){
+  const cur=p.pal||"orchid";
+  openSheet(`<h2>Edit closet</h2>
+    <div class="frow"><label>Name</label><input id="pe_name" value="${esc(p.name)}" placeholder="e.g. Tara"></div>
+    <div class="frow"><label>Icon</label><div class="wrapchips" id="pe_emo">${PEMOJI.map(e=>`<button class="chip mini ${e===p.emoji?"on":""}" data-v="${e}">${e}</button>`).join("")}</div></div>
+    <div class="frow"><label>Colour story</label>
+      ${PALS.map(([id,nm,bg,ac])=>`
+      <button class="palrow ${cur===id?"on":""}" data-pal="${id}">
+        <span class="palsw" style="background:${bg}"><i style="background:${ac}"></i></span>
+        <span>${nm}</span>${cur===id?'<span style="margin-left:auto;color:var(--acc)">✓</span>':""}
+      </button>`).join("")}
+    </div>
+    <button class="btn" id="pe_save">Save</button>`);
+  $("#pe_emo").onclick=e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    $("#pe_emo").querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); b.classList.add("on"); };
+  $("#sheet").querySelectorAll("[data-pal]").forEach(b=>b.onclick=()=>{
+    p.pal=b.dataset.pal; saveProfiles();
+    if(p.id===activePid) applyPal(p.pal);
+    profileEditSheet(p);
+  });
+  $("#pe_save").onclick=()=>{
+    const name=$("#pe_name").value.trim(); if(!name){ toast("Give it a name"); return; }
+    p.name=name; p.emoji=$("#pe_emo .chip.on")?.dataset.v||p.emoji;
+    saveProfiles(); updateProfBtn(); profileSheet(); toast("Saved ✓");
+  };
+}
+
+/* ============ backup / restore / reminders ============ */
+async function exportAll(){
+  try{
+    const data={ app:"chic", v:3, exported:Date.now(), profiles, activePid,
+      items:await all("items"), looks:await all("looks"), plans:await all("plans"),
+      trips:await all("trips"), wishes:await all("wishes") };
+    const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download="chic-backup-"+today()+".json"; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+    toast("Backup saved ⬇");
+  }catch(e){ toast("Export failed"); }
+}
+function mergeRecord(st, mine, inc){
+  // union wear history, keep every favourite/rating high-water mark,
+  // and let the more recently edited copy win the descriptive fields
+  const newer = (inc.up||inc.created||0) > (mine.up||mine.created||0);
+  const out = newer? {...mine, ...inc} : {...inc, ...mine};
+  if(mine.wearDates||inc.wearDates)
+    out.wearDates=[...new Set([...(mine.wearDates||[]),...(inc.wearDates||[])])].sort();
+  out.fav = !!(mine.fav||inc.fav);
+  for(const k of ["style","comfort","rating"])
+    if(mine[k]!=null||inc[k]!=null) out[k]=Math.max(mine[k]||0,inc[k]||0);
+  if(st==="items") out.todo = out.todo || mine.todo || inc.todo || null;
+  if(st==="trips"){
+    const days={...(inc.days||{})};
+    for(const [d,v] of Object.entries(mine.days||{})){
+      const a=Array.isArray(v)?v:[v], b=days[d]? (Array.isArray(days[d])?days[d]:[days[d]]):[];
+      days[d]=[...new Set([...b,...a])];
+    }
+    out.days=days;
+    out.packed={...(inc.packed||{}),...(mine.packed||{})};
+    const ex={}; [...(inc.extras||[]),...(mine.extras||[])].forEach(x=>{ ex[x.id]={...ex[x.id],...x, done:!!(x.done||(ex[x.id]&&ex[x.id].done))}; });
+    out.extras=Object.values(ex);
+  }
+  return out;
+}
+async function importAll(file){
+  let data;
+  try{ data=JSON.parse(await file.text()); }catch(e){ toast("Not a valid backup file"); return; }
+  if(data.app!=="chic" && !data.items && !data.profiles){ toast("That's not a Chic backup"); return; }
+  if(!confirm("Merge this backup into Chic? Nothing on this device will be deleted — new pieces are added and shared ones are combined.")) return;
+  try{
+    const added={};
+    for(const st of ["items","looks","plans","trips","wishes"]){
+      const mine=new Map((await all(st)).map(r=>[r.id,r]));
+      added[st]=0;
+      for(const r of (data[st]||[])){
+        if(!mine.has(r.id)){ const up=r.up; await put(st,r); if(up) r.up=up; added[st]++; }
+        else{
+          const merged=mergeRecord(st, mine.get(r.id), r);
+          await put(st,merged);
+        }
+      }
+    }
+    if(Array.isArray(data.profiles)){
+      for(const p of data.profiles){
+        const ex=profiles.find(x=>x.id===p.id);
+        if(!ex) profiles.push(p);
+        else{ ex.pal=ex.pal||p.pal; }
+      }
+      saveProfiles();
+    }
+    closeSheet(); await reloadProfile();
+    toast(`Merged ✓ +${added.items} pieces, +${added.looks} looks, +${added.wishes} wishes`);
+  }catch(e){ toast("Import failed"); }
+}
+/* ============ state ============ */
+let wishConvertId=null;
+let items=[], looks=[], plans=[], trips=[], wishes=[];
+let planMonth = new Date(); planMonth.setDate(1);
+let tab="closet";
+let filt = {cat:"all", occ:null, color:null, sub:null, season:null, size:null, fav:false, comfy:false, stylish:false, q:""};
+let sel = {};            // studio selection: slot -> itemId|null
+let pendingImg = null;   // for add/edit sheet
+let editingId = null;
+
+const $ = s=>document.querySelector(s);
+const el = (h)=>{ const d=document.createElement("div"); d.innerHTML=h.trim(); return d.firstChild; };
+const uid = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const today = ()=>new Date().toISOString().slice(0,10);
+const esc = s=>(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const colorHex = n=>(COLORS.find(c=>c[0]===n)||["","#888"])[1];
+const catLbl = id=>(CATS.find(c=>c.id===id)||{lbl:id}).lbl;
+const item = id=>items.find(i=>i.id===id);
+
+function toast(msg){
+  const t=$("#toast"); t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("show"),1800);
+}
+
+/* ============ theme ============ */
+function setTheme(m){
+  document.documentElement.dataset.theme=m;
+  localStorage.setItem("chicTheme",m);
+}
+$("#themeBtn").onclick = ()=> setTheme(document.documentElement.dataset.theme==="light"?"dark":"light");
+setTheme(localStorage.getItem("chicTheme") || (matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"));
+
+$("#fsBtn").onclick=()=>{
+  const d=document;
+  if(d.fullscreenElement||d.webkitFullscreenElement){
+    (d.exitFullscreen||d.webkitExitFullscreen).call(d);
+  }else{
+    const el=d.documentElement;
+    const req=el.requestFullscreen||el.webkitRequestFullscreen;
+    if(req) req.call(el);
+    else toast("Fullscreen isn't supported here — try Add to Home Screen instead");
+  }
+};
+document.addEventListener("fullscreenchange",()=>{
+  $("#fsBtn").textContent = document.fullscreenElement? "🗕" : "⛶";
+});
+
+const PALS=[["orchid","Orchid","#141019","#C9B8FF"],["coffee","Coffee","#1C130D","#E89A3C"],
+  ["navy","Navy","#0E1522","#8AB4F8"],["forest","Forest","#111A14","#8AD6A5"],["noir","Noir Rose","#131215","#E8A0B4"]];
+function applyPal(p){
+  if(!p||p==="orchid") delete document.documentElement.dataset.pal;
+  else document.documentElement.dataset.pal=p;
+}
+function setPal(p){
+  activeProfile().pal=p; saveProfiles(); applyPal(p);
+}
+/* ============ image helpers ============ */
+function compress(file){ return new Promise((res,rej)=>{
+  const img=new Image(), u=URL.createObjectURL(file);
+  img.onload=()=>{
+    const M=800, sc=Math.min(1, M/Math.max(img.width,img.height));
+    const c=document.createElement("canvas");
+    c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    URL.revokeObjectURL(u);
+    res(c.toDataURL("image/jpeg",.82));
+  };
+  img.onerror=()=>{URL.revokeObjectURL(u); rej(new Error("bad image"));};
+  img.src=u;
+});}
+function dominantColor(dataUrl){ return new Promise(res=>{
+  const img=new Image();
+  img.onload=()=>{
+    const c=document.createElement("canvas"); c.width=c.height=40;
+    const x=c.getContext("2d");
+    x.drawImage(img, img.width*.2, img.height*.2, img.width*.6, img.height*.6, 0,0,40,40);
+    const d=x.getImageData(0,0,40,40).data;
+    let r=0,g=0,b=0,n=0;
+    for(let i=0;i<d.length;i+=4){ r+=d[i]; g+=d[i+1]; b+=d[i+2]; n++; }
+    r/=n; g/=n; b/=n;
+    let best=null, bd=1e9;
+    for(const [nm,hx] of COLORS){
+      const R=parseInt(hx.slice(1,3),16), G=parseInt(hx.slice(3,5),16), B=parseInt(hx.slice(5,7),16);
+      const dd=(R-r)**2+(G-g)**2+(B-b)**2;
+      if(dd<bd){bd=dd; best=nm;}
+    }
+    res(best);
+  };
+  img.onerror=()=>res(null);
+  img.src=dataUrl;
+});}
+
+/* ============ sheet plumbing ============ */
+function openSheet(html){
+  $("#sheet").innerHTML = '<div class="grab"></div>'+html;
+  $("#sheet").classList.add("open"); $("#veil").classList.add("open");
+  $("#sheet").scrollTop=0;
+}
+function closeSheet(){
+  $("#sheet").onclick=null; wishConvertId=null;
+  $("#sheet").classList.remove("open"); $("#veil").classList.remove("open");
+  pendingImg=null; editingId=null;
+}
+$("#veil").onclick=closeSheet;
+
+/* ============ add / edit item ============ */
+function itemSheet(existing){
+  editingId = existing? existing.id : null;
+  pendingImg = existing? existing.img : null;
+  const it = existing || {name:"",cat:"top",color:null,occs:[],price:""};
+  openSheet(`
+    <h2>${existing?"Edit piece":"New piece"}</h2>
+    <div class="frow">
+      <div class="pickph" id="ph">${pendingImg?`<img src="${pendingImg}" alt="">`:"Add a photo"}</div>
+      <div class="row2" style="margin-top:8px">
+        <button class="btn ghost" id="phCam">📷 Camera</button>
+        <button class="btn ghost" id="phGal">🖼 Gallery</button>
+      </div>
+    </div>
+    <div class="frow"><label>Name</label><input id="f_name" placeholder="e.g. Mustard kurti" value="${esc(it.name)}"></div>
+    <div class="frow"><label>Category</label><div class="wrapchips" id="f_cat">
+      ${CATS.map(c=>`<button class="chip mini ${c.id===it.cat?"on":""}" data-v="${c.id}">${c.lbl}</button>`).join("")}
+    </div></div>
+    <div class="frow ${subsFor(it.cat).length?"":"hidden"}" id="f_subrow"><label>Type</label><div class="wrapchips" id="f_sub">
+      ${subsFor(it.cat).map(s=>`<button class="chip mini ${s===it.sub?"on":""}" data-v="${s}">${s}</button>`).join("")}
+    </div></div>
+    <div class="frow"><label>Colour <span style="color:var(--acc2)" id="autonote"></span></label><div class="wrapchips" id="f_col">
+      ${COLORS.map(([n,h])=>`<button class="chip mini ${n===it.color?"on":""}" data-v="${n}"><span class="cdot" style="background:${h}"></span>${n}</button>`).join("")}
+    </div></div>
+    <div class="frow"><label>Occasions</label><div class="wrapchips" id="f_occ">
+      ${OCCS.map(o=>`<button class="chip mini ${it.occs.includes(o)?"on":""}" data-v="${o}">${o}</button>`).join("")}
+    </div></div>
+    <div class="frow"><label>Size</label><div class="wrapchips" id="f_size">
+      ${SIZES.map(s=>`<button class="chip mini ${s===it.size?"on":""}" data-v="${s}">${s}</button>`).join("")}
+      <input id="f_sizec" placeholder="or custom (38, 32…)" style="flex:1;min-width:120px" value="${it.size&&!SIZES.includes(it.size)?esc(it.size):""}">
+    </div></div>
+    <div class="frow"><label>Season</label><div class="wrapchips" id="f_season">
+      ${SEASONS.map(s=>`<button class="chip mini ${s===it.season?"on":""}" data-v="${s}">${s}</button>`).join("")}
+    </div></div>
+    <div class="frow"><label>Price (optional)</label><input id="f_price" inputmode="decimal" placeholder="₹" value="${it.price||""}"></div>
+    <button class="btn" id="saveIt">${existing?"Save changes":"Add to closet"}</button>
+  `);
+  $("#phGal").onclick = ()=> $("#fileIn").click();
+  $("#phCam").onclick = ()=> $("#camIn").click();
+  $("#f_cat").onclick = e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    $("#f_cat").querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); b.classList.add("on");
+    const subs=subsFor(b.dataset.v), row=$("#f_subrow");
+    if(subs.length){ $("#f_sub").innerHTML=subs.map(s=>`<button class="chip mini" data-v="${s}">${s}</button>`).join(""); row.classList.remove("hidden"); }
+    else { $("#f_sub").innerHTML=""; row.classList.add("hidden"); } };
+  $("#f_sub").onclick = e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    const was=b.classList.contains("on");
+    $("#f_sub").querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+    if(!was) b.classList.add("on"); };
+  $("#f_col").onclick = e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    $("#f_col").querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); b.classList.add("on"); };
+  $("#f_occ").onclick = e=>{ const b=e.target.closest(".chip"); if(b) b.classList.toggle("on"); };
+  $("#f_size").onclick = e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    const was=b.classList.contains("on");
+    $("#f_size").querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+    if(!was){ b.classList.add("on"); $("#f_sizec").value=""; } };
+  $("#f_sizec").oninput = ()=> $("#f_size").querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+  $("#f_season").onclick = e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    const was=b.classList.contains("on");
+    $("#f_season").querySelectorAll(".chip").forEach(c=>c.classList.remove("on"));
+    if(!was) b.classList.add("on"); };
+  $("#saveIt").onclick = saveItem;
+}
+$("#fileIn").onchange = $("#camIn").onchange = async e=>{
+  const f=e.target.files[0]; e.target.value="";
+  if(!f) return;
+  try{
+    pendingImg = await compress(f);
+    $("#ph").innerHTML = `<img src="${pendingImg}" alt="">`;
+    const auto = await dominantColor(pendingImg);
+    if(auto && ![...$("#f_col").querySelectorAll(".chip")].some(c=>c.classList.contains("on"))){
+      $("#f_col").querySelectorAll(".chip").forEach(c=>c.classList.toggle("on", c.dataset.v===auto));
+      $("#autonote").textContent = "· auto-picked "+auto;
+    }
+  }catch(err){ toast("Couldn't read that photo"); }
+};
+async function saveItem(){
+  const name = $("#f_name").value.trim();
+  if(!pendingImg){ toast("Add a photo first"); return; }
+  const cat = $("#f_cat .chip.on")?.dataset.v || "top";
+  const sub = subsFor(cat).length ? ($("#f_sub .chip.on")?.dataset.v || null) : null;
+  const season = $("#f_season .chip.on")?.dataset.v || null;
+  const size = $("#f_size .chip.on")?.dataset.v || $("#f_sizec").value.trim() || null;
+  const color = $("#f_col .chip.on")?.dataset.v || null;
+  const occs = [...$("#f_occ").querySelectorAll(".chip.on")].map(c=>c.dataset.v);
+  const price = parseFloat($("#f_price").value) || null;
+  let obj;
+  if(editingId){
+    obj = item(editingId);
+    Object.assign(obj,{name:name||sub||catLbl(cat), cat, sub, season, size, color, occs, price, img:pendingImg});
+  }else{
+    obj = {id:uid(), name:name||sub||catLbl(cat), cat, sub, season, size, color, occs, price, img:pendingImg,
+      fav:false, style:0, comfort:0, often:false, todo:null, wearDates:[], created:Date.now()};
+    items.push(obj);
+  }
+  await put("items",obj);
+  if(wishConvertId){
+    wishes=wishes.filter(x=>x.id!==wishConvertId);
+    await del("wishes",wishConvertId); wishConvertId=null;
+    closeSheet(); render(); toast("Wish granted — it's in your closet ✨"); return;
+  }
+  closeSheet(); render(); toast(editingId?"Updated":"Added to closet");
+}
+
+/* ============ item detail ============ */
+function overall(o){ const s=o.style||0, c=o.comfort||0; return (s&&c)? Math.round((s+c)/2) : (s||c||o.rating||0); }
+function ratingRows(o){
+  const mk=(dim,lbl,v)=>`<div class="raterow"><span class="ratelbl">${lbl}</span>
+    <div class="stars" data-dim="${dim}">${[1,2,3,4,5].map(n=>`<button data-n="${n}" class="${v>=n?"on":""}" aria-label="${lbl} ${n}">★</button>`).join("")}</div></div>`;
+  return `<div class="rateblock">${mk("style","Style",o.style||0)}${mk("comfort","Comfort",o.comfort||0)}</div>`;
+}
+function wireRatings(o, store, rerender){
+  $("#sheet").querySelectorAll(".stars[data-dim]").forEach(row=>{
+    row.onclick=async e=>{ const b=e.target.closest("button"); if(!b)return;
+      const dim=row.dataset.dim, v=+b.dataset.n;
+      o[dim] = o[dim]===v ? 0 : v;
+      await put(store,o); rerender(); };
+  });
+}
+function detailSheet(id){
+  const it=item(id); if(!it) return;
+  const wears=it.wearDates.length, last=wears? it.wearDates[it.wearDates.length-1] : "—";
+  openSheet(`
+    <img class="dph" src="${it.img}" alt="${esc(it.name)}">
+    <div class="dtitle">${esc(it.name)}</div>
+    <div class="dsub">${it.sub||catLbl(it.cat)}${it.size?" · "+esc(it.size):""}${it.season?" · "+it.season:""}${it.color?" · "+it.color:""}${it.occs.length?" · "+it.occs.join(", "):""}</div>
+    ${ratingRows(it)}
+    <div class="statline">
+      <div class="stat"><div class="v">${wears}</div><div class="k">Wears</div></div>
+      <div class="stat"><div class="v">${it.often?"Often":last}</div><div class="k">Last worn</div></div>
+      <div class="stat"><div class="v">${it.price? "₹"+(wears? (it.price/wears).toFixed(0): it.price):"—"}</div><div class="k">${it.price&&wears?"Per wear":"Price"}</div></div>
+    </div>
+    <div class="row2" style="margin-bottom:10px">
+      <button class="btn" id="d_wear">Wore today</button>
+      <button class="btn ghost" id="d_fav">${it.fav?"♥ Favourited":"♡ Favourite"}</button>
+    </div>
+    <div class="row2" style="margin-bottom:10px">
+      <button class="btn ghost" id="d_todo">${it.todo?"✎ Edit note":"✂ Needs work"}</button>
+      <button class="btn ghost" id="d_edit">Edit</button>
+    </div>
+    <button class="btn ghost ${it.often?"on":""}" id="d_often" style="margin-bottom:10px">${it.often?"♻ I wear this often ✓":"♻ I wear this often"}</button>
+    ${it.todo?`<div class="panel" style="margin-bottom:10px"><h3 style="font-size:1.05rem">${it.todo.type==="alteration"?"✂ Alteration pending":"🛍 To buy"}</h3>
+      <div class="note" style="margin:4px 0 10px">${esc(it.todo.note||"")}</div>
+      <button class="btn" id="d_tdone">Done ✓</button></div>`:""}
+    ${(()=>{ const partners=new Set(); const n=looks.filter(l=>l.itemIds.includes(id)).length;
+      looks.forEach(l=>{ if(l.itemIds.includes(id)) l.itemIds.forEach(x=>{ if(x!==id) partners.add(x); }); });
+      const ps=[...partners].map(item).filter(Boolean);
+      return ps.length? `<div class="frow"><label>Styled with — in ${n} look${n>1?"s":""}</label>
+        <div class="hrow">${ps.map(i=>`<div class="thumb" data-pid="${i.id}"><img src="${i.img}" alt=""><div class="t">${esc(i.name)}</div></div>`).join("")}</div></div>`
+      : `<div class="frow"><label>Styled with</label><div class="note" style="margin:0">Not in any look yet — build one in the Studio ✦</div></div>`; })()}
+    <button class="btn danger" id="d_del">Remove from closet</button>
+  `);
+  wireRatings(it,"items",()=>{ detailSheet(id); render(); });
+  $("#d_wear").onclick = async ()=>{ it.wearDates.push(today()); await put("items",it); detailSheet(id); toast("Logged ✓"); };
+  $("#d_fav").onclick  = async ()=>{ it.fav=!it.fav; await put("items",it); detailSheet(id); render(); };
+  $("#d_todo").onclick = ()=> todoSheet(id);
+  const td=$("#d_tdone"); if(td) td.onclick = async ()=>{ it.todo=null; await put("items",it); detailSheet(id); render(); toast("Sorted ✓"); };
+  $("#d_edit").onclick = ()=> itemSheet(it);
+  $("#d_often").onclick = async ()=>{ it.often=!it.often; await put("items",it); detailSheet(id); render(); toast(it.often?"Marked — a wardrobe staple ♻":"Unmarked"); };
+  $("#sheet").querySelectorAll("[data-pid]").forEach(t=>t.onclick=()=>detailSheet(t.dataset.pid));
+  $("#d_del").onclick  = async ()=>{
+    if(!confirm("Remove this piece? Looks using it will keep other items.")) return;
+    items = items.filter(x=>x.id!==id);
+    for(const lk of looks){ if(lk.itemIds.includes(id)){ lk.itemIds=lk.itemIds.filter(x=>x!==id); await put("looks",lk); } }
+    looks = looks.filter(l=>l.itemIds.length);
+    await del("items",id); closeSheet(); render(); toast("Removed");
+  };
+}
+
+/* ============ needs-work notes ============ */
+function todoSheet(id){
+  const it=item(id); if(!it)return;
+  const t=it.todo||{type:"alteration",note:""};
+  openSheet(`<h2>Needs work</h2>
+    <div class="frow"><label>What kind?</label><div class="wrapchips" id="td_type">
+      <button class="chip ${t.type==="alteration"?"on":""}" data-v="alteration">✂ Alteration</button>
+      <button class="chip ${t.type==="buy"?"on":""}" data-v="buy">🛍 Buy to match</button>
+    </div></div>
+    <div class="frow"><label>Note</label><input id="td_note" placeholder="e.g. take up hem / need gold blouse" value="${esc(t.note||"")}"></div>
+    <button class="btn" id="td_save">Save</button>
+    ${it.todo?'<button class="btn ghost" id="td_clear" style="margin-top:10px">Remove note</button>':""}`);
+  $("#td_type").onclick=e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    $("#td_type").querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); b.classList.add("on"); };
+  $("#td_save").onclick=async ()=>{
+    it.todo={type:$("#td_type .chip.on")?.dataset.v||"alteration", note:$("#td_note").value.trim()};
+    await put("items",it); detailSheet(id); render(); toast("Noted ✓");
+  };
+  const tc=$("#td_clear"); if(tc) tc.onclick=async ()=>{ it.todo=null; await put("items",it); detailSheet(id); render(); };
+}
+
+/* ============ wishlist ============ */
+let wishImg=null;
+function wishSheet(existing){
+  wishImg = existing? existing.img||null : null;
+  const w = existing||{name:"",cat:"top",note:"",price:"",link:""};
+  openSheet(`<h2>${existing?"Edit wish":"Add to wishlist"}</h2>
+    <div class="frow"><button class="pickph" id="wph" style="aspect-ratio:3/2">${wishImg?`<img src="${wishImg}" alt="">`:"Photo / screenshot (optional)"}</button></div>
+    <div class="frow"><label>What is it?</label><input id="w_name" placeholder="e.g. Gold jhumkas" value="${esc(w.name)}"></div>
+    <div class="frow"><label>Category</label><div class="wrapchips" id="w_cat">
+      ${CATS.map(c=>`<button class="chip mini ${c.id===w.cat?"on":""}" data-v="${c.id}">${c.lbl}</button>`).join("")}
+    </div></div>
+    <div class="frow"><label>Why / goes with</label><input id="w_note" placeholder="e.g. for the green saree" value="${esc(w.note||"")}"></div>
+    <div class="row2">
+      <div class="frow"><label>Approx price</label><input id="w_price" inputmode="decimal" placeholder="₹" value="${w.price||""}"></div>
+      <div class="frow"><label>Link (optional)</label><input id="w_link" placeholder="https://…" value="${esc(w.link||"")}"></div>
+    </div>
+    <button class="btn" id="w_save">${existing?"Save":"Add wish"}</button>
+    ${existing?`<div class="row2" style="margin-top:10px">
+      <button class="btn ghost" id="w_got">🎉 Got it!</button>
+      <button class="btn danger" id="w_del">Remove</button>
+    </div>`:""}`);
+  $("#wph").onclick=()=>$("#wishIn").click();
+  $("#w_cat").onclick=e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    $("#w_cat").querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); b.classList.add("on"); };
+  $("#w_save").onclick=async ()=>{
+    const name=$("#w_name").value.trim(); if(!name){ toast("Name the wish"); return; }
+    let w2=existing;
+    const data={name, cat:$("#w_cat .chip.on")?.dataset.v||"top", note:$("#w_note").value.trim(),
+      price:parseFloat($("#w_price").value)||null, link:$("#w_link").value.trim(), img:wishImg};
+    if(w2) Object.assign(w2,data);
+    else { w2={id:uid(), created:Date.now(), ...data}; wishes.push(w2); }
+    await put("wishes",w2); closeSheet(); render(); toast("Wished ✨");
+  };
+  if(existing){
+    $("#w_del").onclick=async ()=>{
+      wishes=wishes.filter(x=>x.id!==existing.id); await del("wishes",existing.id);
+      closeSheet(); render(); toast("Removed");
+    };
+    $("#w_got").onclick=()=>{
+      itemSheet({name:existing.name, cat:existing.cat, occs:[], price:existing.price, img:existing.img||null});
+      wishConvertId=existing.id;
+      toast("Yay! Confirm the details to move it in 🎉");
+    };
+  }
+}
+$("#wishIn").onchange=async e=>{
+  const f=e.target.files[0]; e.target.value=""; if(!f)return;
+  try{ wishImg=await compress(f); $("#wph").innerHTML=`<img src="${wishImg}" alt="">`; }
+  catch(err){ toast("Couldn't read that photo"); }
+};
+
+/* ============ closet view ============ */
+function seasonsInCloset(){ return [...new Set(items.map(i=>i.season).filter(Boolean))]; }
+function sizesInCloset(){
+  const set=new Set(items.map(i=>i.size).filter(Boolean));
+  return [...SIZES.filter(s=>set.has(s)), ...[...set].filter(s=>!SIZES.includes(s)).sort()];
+}
+function closetFiltered(){
+  const q=(filt.q||"").trim().toLowerCase();
+  let list = items.filter(i=>
+    (filt.cat==="all"||i.cat===filt.cat) &&
+    (!filt.sub || i.sub===filt.sub) &&
+    (!filt.season || i.season===filt.season) &&
+    (!filt.size || i.size===filt.size) &&
+    (!filt.occ || i.occs.includes(filt.occ)) &&
+    (!filt.color || i.color===filt.color) &&
+    (!filt.fav || i.fav) &&
+    (!filt.comfy || (i.comfort||0)>=4) &&
+    (!filt.stylish || (i.style||0)>=4) &&
+    (!q || (i.name||"").toLowerCase().includes(q) || (i.sub||"").toLowerCase().includes(q))
+  );
+  return filt.stylish ? list.sort((a,b)=>(b.style||0)-(a.style||0) || b.created-a.created)
+       : filt.comfy   ? list.sort((a,b)=>(b.comfort||0)-(a.comfort||0) || b.created-a.created)
+       :                list.sort((a,b)=>b.created-a.created);
+}
+function closetGridHTML(list){
+  return list.length? `<div class="grid">${list.map(i=>`
+    <div class="card" data-id="${i.id}">
+      ${i.todo?`<span class="badge">${i.todo.type==="alteration"?"✂ Alter":"🛍 To buy"}</span>`:""}
+      ${i.fav?'<span class="favtag">♥</span>':""}
+      <img class="ph" src="${i.img}" alt="${esc(i.name)}" loading="lazy">
+      <div class="meta"><div class="nm">${esc(i.name)}</div>
+      <div class="sub">${i.color?`<span class="cdot" style="background:${colorHex(i.color)}"></span>`:""}${i.sub||catLbl(i.cat)}${overall(i)?` · ${"★".repeat(overall(i))}`:""}</div></div>
+    </div>`).join("")}</div>`
+  : `<div class="empty"><div class="big">${items.length?"Nothing matches":"An empty closet"}</div>${items.length?"Try clearing a filter or search.":"Tap + to photograph your first piece."}</div>`;
+}
+function nudgeHtml(){
+  if(items.length<3) return "";
+  if(localStorage.getItem("chicNudge_"+activePid)===today()) return "";
+  const dates=[...items.flatMap(i=>i.wearDates||[]), ...looks.flatMap(l=>l.wearDates||[])];
+  const last=dates.length? dates.sort()[dates.length-1] : null;
+  const days=last? Math.floor((new Date(today())-new Date(last))/864e5) : null;
+  if(last && days<5) return "";
+  const msg=last? `It's been ${days} days since you logged an outfit — double-tap a look to catch up ✨`
+               : `Tip: double-tap a look to log what you wore today ✨`;
+  return `<div class="nudge">${msg}<button id="nudgeX" aria-label="Dismiss">✕</button></div>`;
+}
+function closetView(){
+  const search = `${nudgeHtml()}<div class="searchbar"><span>⌕</span><input id="q" placeholder="Search your closet" value="${esc(filt.q||"")}" autocomplete="off" enterkeyhint="search"><button id="qClear" class="${filt.q?"":"hidden"}" aria-label="Clear search">✕</button></div>`;
+  const catChips = `<div class="filters">
+    <select id="fl_cat" aria-label="Category">
+      <option value="all">All categories</option>
+      ${CATS.map(c=>`<option value="${c.id}" ${filt.cat===c.id?"selected":""}>${c.lbl}</option>`).join("")}
+    </select>
+    <select id="fl_occ" aria-label="Occasion">
+      <option value="">Any occasion</option>
+      ${OCCS.map(o=>`<option ${filt.occ===o?"selected":""}>${o}</option>`).join("")}
+    </select>
+    <select id="fl_col" aria-label="Colour">
+      <option value="">Any colour</option>
+      ${COLORS.map(([n])=>`<option ${filt.color===n?"selected":""}>${n}</option>`).join("")}
+    </select>
+  </div>
+  ${sizesInCloset().length? `<div class="filters"><select id="fl_size" aria-label="Size">
+    <option value="">Any size</option>
+    ${sizesInCloset().map(s=>`<option ${filt.size===s?"selected":""}>${esc(s)}</option>`).join("")}
+  </select></div>`:""}
+  ${subsFor(filt.cat).length? `<div class="filters"><select id="fl_sub" aria-label="Type">
+    <option value="">All ${catLbl(filt.cat).toLowerCase()}s</option>
+    ${subsFor(filt.cat).map(s=>`<option ${filt.sub===s?"selected":""}>${s}</option>`).join("")}
+  </select></div>`:""}
+  ${seasonsInCloset().length? `<div class="filters"><select id="fl_season" aria-label="Season">
+    <option value="">Any season</option>
+    ${SEASONS.filter(s=>seasonsInCloset().includes(s)).map(s=>`<option ${filt.season===s?"selected":""}>${s}</option>`).join("")}
+  </select></div>`:""}
+  <div class="chiprow">
+    <button class="chip mini ${filt.fav?"on":""}" data-f="fav">♥ Favourites</button>
+    <button class="chip mini ${filt.comfy?"on":""}" data-f="comfy">☁ Comfiest</button>
+    <button class="chip mini ${filt.stylish?"on":""}" data-f="stylish">✦ Best style</button>
+    ${(filt.cat!=="all"||filt.occ||filt.color||filt.sub||filt.season||filt.size||filt.fav||filt.comfy||filt.stylish||filt.q)?'<button class="chip mini" data-f="clear">✕ Clear</button>':""}
+  </div>`;
+  $("#view").innerHTML = search + catChips + `<div id="closetGrid">${closetGridHTML(closetFiltered())}</div>`;
+  const qi=$("#q");
+  qi.oninput = ()=>{ filt.q=qi.value;
+    $("#closetGrid").innerHTML=closetGridHTML(closetFiltered());
+    $("#qClear").classList.toggle("hidden", !filt.q); };
+  $("#qClear").onclick=()=>{ filt.q=""; render(); };
+  const nx=$("#nudgeX"); if(nx) nx.onclick=()=>{ localStorage.setItem("chicNudge_"+activePid, today()); render(); };
+  $("#fl_cat").onchange = e=>{ filt.cat=e.target.value; filt.sub=null; render(); };
+  const fse=$("#fl_season"); if(fse) fse.onchange = e=>{ filt.season=e.target.value||null; render(); };
+  const fs=$("#fl_sub"); if(fs) fs.onchange = e=>{ filt.sub=e.target.value||null; render(); };
+  const fz=$("#fl_size"); if(fz) fz.onchange = e=>{ filt.size=e.target.value||null; render(); };
+  $("#fl_occ").onchange = e=>{ filt.occ=e.target.value||null; render(); };
+  $("#fl_col").onchange = e=>{ filt.color=e.target.value||null; render(); };
+  $("#view").onclick = e=>{
+    const f=e.target.closest("[data-f]");
+    if(f){
+      if(f.dataset.f==="clear") filt={cat:"all",occ:null,color:null,sub:null,season:null,size:null,fav:false,comfy:false,stylish:false,q:""};
+      else filt[f.dataset.f]=!filt[f.dataset.f];
+      render(); return;
+    }
+    const card=e.target.closest(".card");  if(card) detailSheet(card.dataset.id);
+  };
+}
+/* ============ studio ============ */
+let studioMode = "two"; // "two" | "one" | "saree"
+let curSlot = "top";
+let extraSlots = []; // [{key, cat}]
+const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function studioSlots(){
+  const base = studioMode==="saree"? ["saree","blouse"]
+             : studioMode==="one"?   ["dress"]
+             :                       ["top","bottom"];
+  return [...base,"outerwear","footwear","accessory"].map(c=>({key:c, cat:c})).concat(extraSlots);
+}
+function slotCat(key){ const d=studioSlots().find(s=>s.key===key); return d? d.cat : key; }
+function slotDef(key){ return studioSlots().find(s=>s.key===key); }
+function slotItems(def){ return items.filter(i=>i.cat===def.cat && (!def.sub||i.sub===def.sub)); }
+/* ============ studio stylist ============ */
+const NEUTRALS=new Set(["Black","White","Grey","Beige","Brown","Navy","Olive","Gold"]);
+function hexHue(hex){
+  const r=parseInt(hex.slice(1,3),16)/255, g=parseInt(hex.slice(3,5),16)/255, b=parseInt(hex.slice(5,7),16)/255;
+  const mx=Math.max(r,g,b), mn=Math.min(r,g,b), d=mx-mn;
+  if(d===0) return 0;
+  let h; if(mx===r) h=((g-b)/d)%6; else if(mx===g) h=(b-r)/d+2; else h=(r-g)/d+4;
+  h*=60; if(h<0)h+=360; return h;
+}
+function harmony(a,b){
+  if(!a||!b) return 1.5;
+  if(a===b) return 2;
+  if(NEUTRALS.has(a)||NEUTRALS.has(b)) return 3;
+  let d=Math.abs(hexHue(colorHex(a))-hexHue(colorHex(b))); if(d>180)d=360-d;
+  if(d<25) return 2;      // analogous
+  if(d>150) return 2.4;   // complementary
+  if(d<55||d>125) return 1.6;
+  return 1.1;             // mid = a touch clashy
+}
+function freshness(it){
+  if(it.often) return 0.3;
+  if(!it.wearDates||!it.wearDates.length) return 1.5;
+  const days=(Date.now()-new Date(it.wearDates[it.wearDates.length-1]))/864e5;
+  return Math.min(days/30,1)*1.5;
+}
+function occasionOk(it,occ){
+  if(!occ||occ==="Any") return true;
+  if(!it.occs||!it.occs.length) return true; // versatile pieces fit anywhere
+  return it.occs.includes(occ);
+}
+function scorePiece(it,ctx,occ){
+  let s=1 + freshness(it) + (it.style||0)*0.2 + (it.comfort||0)*0.08;
+  if(it.fav) s+=0.6;
+  if(ctx.length){ let h=0; ctx.forEach(c=>h+=harmony(it.color,c)); s+=h/ctx.length; }
+  if(it.todo && it.todo.type==="alteration") s-=0.8;
+  return s + Math.random()*0.8;
+}
+function eligible(cat,occ,sub){
+  return items.filter(i=>i.cat===cat && (!sub||i.sub===sub) && occasionOk(i,occ));
+}
+function pickWeighted(cands,scoreFn){
+  if(!cands.length) return null;
+  const scored=cands.map(it=>({it,s:Math.max(0.01,scoreFn(it))}));
+  const tot=scored.reduce((a,b)=>a+b.s,0);
+  let r=Math.random()*tot;
+  for(const x of scored){ r-=x.s; if(r<=0) return x.it; }
+  return scored[scored.length-1].it;
+}
+function buildSuggestion(occ){
+  const out={}, ctx=[];
+  const add=(cat,sub)=>{
+    const pick=pickWeighted(eligible(cat,occ,sub), it=>scorePiece(it,ctx,occ));
+    if(pick){ out[cat]=pick.id; if(pick.color) ctx.push(pick.color); }
+    return pick;
+  };
+  if(studioMode==="saree"){ if(!add("saree")) return null; add("blouse"); }
+  else if(studioMode==="one"){ if(!add("dress")) return null; }
+  else { const t=add("top"), b=add("bottom"); if(!t||!b) return null; }
+  add("footwear");
+  if(studioMode==="saree"){
+    const jew=["Earrings","Necklace","Bangles"];
+    let c=eligible("accessory",occ).filter(i=>!i.sub||jew.includes(i.sub));
+    if(!c.length) c=eligible("accessory",occ);
+    const pick=pickWeighted(c, it=>scorePiece(it,ctx,occ));
+    if(pick) out.accessory=pick.id;
+  } else add("accessory");
+  if(["Work","Festive","Party"].includes(occ) || Math.random()<0.3) add("outerwear");
+  return out;
+}
+function generateSuggestions(occ,n=3){
+  const seen=new Set(), res=[]; let tries=0;
+  while(res.length<n && tries<n*6){
+    tries++;
+    const s=buildSuggestion(occ); if(!s) break;
+    const key=[s.top,s.bottom,s.dress,s.saree,s.blouse].filter(Boolean).join("|");
+    if(seen.has(key)) continue;
+    seen.add(key); res.push(s);
+  }
+  return res;
+}
+function suggestSheet(occ){
+  occ=occ||"Any";
+  const order = studioMode==="saree"?["saree","blouse","outerwear","footwear","accessory"]
+    : studioMode==="one"?["dress","outerwear","footwear","accessory"]
+    : ["top","bottom","outerwear","footwear","accessory"];
+  const sugg=generateSuggestions(occ,3);
+  const cards = sugg.length? sugg.map((s,idx)=>{
+    const its=order.map(k=>s[k]).filter(Boolean).map(item).filter(Boolean);
+    return `<div class="suggcard">
+      <div class="hrow">${its.map(i=>`<div class="thumb"><img src="${i.img}" alt=""><div class="t">${esc(i.name)}</div></div>`).join("")}</div>
+      <button class="btn ghost" data-use="${idx}">Use this look</button>
+    </div>`;
+  }).join("") : `<div class="note" style="color:var(--mut);margin-top:4px">Not enough pieces for a${occ==="Any"?"n outfit":" "+occ.toLowerCase()} look yet. Add a few more and try again.</div>`;
+  openSheet(`<h2>Style me</h2>
+    <div class="note" style="color:var(--mut);margin-bottom:8px">Ideas from pieces you own — tuned to colour, occasion and freshness.</div>
+    <div class="chiprow" style="padding:0 0 10px">
+      ${["Any",...OCCS].map(o=>`<button class="chip mini ${o===occ?"on":""}" data-occ="${o}">${o}</button>`).join("")}
+    </div>
+    <div>${cards}</div>
+    ${sugg.length?`<button class="btn ghost" id="moreSugg" style="margin-top:6px">↻ More ideas</button>`:""}`);
+  $("#sheet").querySelectorAll("[data-occ]").forEach(b=>b.onclick=()=>suggestSheet(b.dataset.occ));
+  $("#sheet").querySelectorAll("[data-use]").forEach(b=>b.onclick=()=>{
+    const s=sugg[+b.dataset.use];
+    sel={}; extraSlots=[];
+    Object.keys(s).forEach(k=>sel[k]=s[k]);
+    curSlot = order.find(k=>s[k]) || curSlot;
+    closeSheet(); render(); toast("Loaded — tweak or save ♥");
+  });
+  const m=$("#moreSugg"); if(m) m.onclick=()=>suggestSheet(occ);
+}
+function studioView(){
+  const slots = studioSlots();
+  if(!slots.some(s=>s.key===curSlot)) curSlot=slots[0].key;
+  const opts = slotItems(slotDef(curSlot));
+  const cards = `<button class="dcard none" data-id="">skip this slot</button>` +
+    opts.map(i=>`<button class="dcard" data-id="${i.id}"><img src="${i.img}" alt="${esc(i.name)}"><span class="dnm">${esc(i.name)}</span></button>`).join("");
+  $("#view").innerHTML = `<div class="studio">
+    <div class="chiprow">
+      <button class="chip ${studioMode==="two"?"on":""}" data-mode="two">Top + Bottom</button>
+      <button class="chip ${studioMode==="one"?"on":""}" data-mode="one">One-piece</button>
+      <button class="chip ${studioMode==="saree"?"on":""}" data-mode="saree">Saree</button>
+    </div>
+    <div class="slotchips">${slots.map(s=>`<button class="chip mini ${s.key===curSlot?"on":""} ${sel[s.key]?"done":""}" data-slot="${s.key}">${s.sub||catLbl(s.cat)}</button>`).join("")}</div>
+    <div class="deck" id="deck">${cards}</div>
+    <div class="deckhint">swipe · centered piece is chosen</div>
+    <div class="studiobar">
+      <button class="btn ghost" id="suggest">✨ Suggest</button>
+      <button class="btn ghost" id="shuffle" style="flex:0 0 52px;padding:12px 0" aria-label="Shuffle">⟳</button>
+      <button class="btn" id="saveLook">Save look</button>
+    </div></div>
+    <div class="peek" id="peek"></div>`;
+  document.querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>{
+    studioMode=b.dataset.mode;
+    ["dress","top","bottom","saree","blouse"].forEach(s=>{ if(!studioSlots().some(x=>x.key===s)) delete sel[s]; });
+    render();
+  });
+  document.querySelectorAll(".slotchips [data-slot]").forEach(b=>b.onclick=()=>{ curSlot=b.dataset.slot; render(); });
+  const deck=$("#deck");
+  const selCard=[...deck.children].find(c=>c.dataset.id===(sel[curSlot]||""));
+  if(selCard) requestAnimationFrame(()=>selCard.scrollIntoView({inline:"center", block:"nearest"}));
+  deck.onclick=e=>{ const c=e.target.closest(".dcard"); if(c) c.scrollIntoView({behavior:REDUCE?"auto":"smooth", inline:"center", block:"nearest"}); };
+  let idle;
+  const settle=()=>{ deckTilt(deck); clearTimeout(idle); idle=setTimeout(()=>commitCenter(deck),110); };
+  deck.addEventListener("scroll", settle, {passive:true});
+  settle();
+  $("#suggest").onclick=()=>suggestSheet("Any");
+  $("#shuffle").onclick=()=>{
+    studioSlots().forEach(s=>{
+      const pool=slotItems(s);
+      if(pool.length) sel[s.key]=pool[Math.floor(Math.random()*pool.length)].id;
+    });
+    render();
+    toast("Shuffled ✨");
+  };
+  $("#saveLook").onclick=()=>{
+    const ids=studioSlots().map(s=>sel[s.key]).filter(Boolean);
+    if(ids.length<2){ toast("Pick at least two pieces"); return; }
+    openSheet(`
+      <h2>Save look</h2>
+      <div class="hrow" style="margin-bottom:12px">${ids.map(item).filter(Boolean).map(i=>`<div class="thumb"><img src="${i.img}" alt=""><div class="t">${esc(i.name)}</div></div>`).join("")}</div>
+      <div class="frow"><label>Name <span style="color:var(--acc2)">· suggested — edit or keep</span></label>
+        <input id="lk_name" value="${esc(suggestLookName(ids))}" placeholder="e.g. Friday brunch"></div>
+      <div class="frow"><label>Occasions</label><div class="wrapchips" id="lk_occ">
+        ${OCCS.map(o=>`<button class="chip mini" data-v="${o}">${o}</button>`).join("")}
+      </div></div>
+      <button class="btn" id="lk_save">Save to Looks</button>`);
+    let lastSuggest=suggestLookName(ids);
+    $("#lk_occ").onclick=e=>{ const b=e.target.closest(".chip"); if(!b)return;
+      b.classList.toggle("on");
+      const occs=[...$("#lk_occ").querySelectorAll(".chip.on")].map(c=>c.dataset.v);
+      const inp=$("#lk_name");
+      if(inp.value===lastSuggest){ lastSuggest=suggestLookName(ids,occs); inp.value=lastSuggest; }
+    };
+    $("#lk_save").onclick=async ()=>{
+      const occs=[...$("#lk_occ").querySelectorAll(".chip.on")].map(c=>c.dataset.v);
+      const lk={id:uid(), name:$("#lk_name").value.trim()||suggestLookName(ids,occs)||"Look "+(looks.length+1),
+        occs,
+        itemIds:ids, fav:false, style:0, comfort:0, wearDates:[], created:Date.now()};
+      looks.push(lk); await put("looks",lk);
+      closeSheet(); toast("Look saved ♥");
+    };
+  };
+  renderPeek();
+}
+function centerCard(deck){
+  const mid=deck.scrollLeft+deck.clientWidth/2;
+  let best=null, bd=1e9;
+  [...deck.children].forEach(c=>{
+    const d=Math.abs(c.offsetLeft+c.offsetWidth/2-mid);
+    if(d<bd){bd=d; best=c;}
+  });
+  return best;
+}
+function deckTilt(deck){
+  const mid=deck.scrollLeft+deck.clientWidth/2;
+  [...deck.children].forEach(c=>{
+    const d=(c.offsetLeft+c.offsetWidth/2-mid)/deck.clientWidth;
+    if(!REDUCE){
+      const sc=1-Math.min(.16,Math.abs(d)*.4);
+      c.style.transform=`scale(${sc})`;
+      c.style.opacity=String(1-Math.min(.45,Math.abs(d)*.9));
+    }
+    c.classList.remove("centered");
+  });
+  const cc=centerCard(deck); if(cc) cc.classList.add("centered");
+}
+function commitCenter(deck){
+  const cc=centerCard(deck); if(!cc) return;
+  sel[curSlot]=cc.dataset.id||null;
+  const chip=document.querySelector(`.slotchips [data-slot="${curSlot}"]`);
+  if(chip) chip.classList.toggle("done", !!sel[curSlot]);
+  renderPeek();
+}
+function renderPeek(){
+  const p=$("#peek"); if(!p) return;
+  p.innerHTML=studioSlots().map(s=>{
+    const it=sel[s.key]? item(sel[s.key]):null;
+    const extra=s.key.startsWith("x_");
+    return `<button data-slot="${s.key}" class="${s.key===curSlot?"cur":""}" aria-label="${catLbl(s.cat)}">
+      ${it?`<img src="${it.img}" alt="">`:""}${extra?`<i class="xrm" data-xrm="${s.key}">✕</i>`:""}</button>`;
+  }).join("")+`<button class="addslot" id="addSlot" aria-label="Add a slot">＋</button>`;
+  p.querySelectorAll("button[data-slot]").forEach(b=>b.onclick=e=>{
+    const rm=e.target.closest(".xrm");
+    if(rm){ extraSlots=extraSlots.filter(s=>s.key!==rm.dataset.xrm); delete sel[rm.dataset.xrm]; render(); return; }
+    curSlot=b.dataset.slot; render();
+  });
+  $("#addSlot").onclick=()=>{
+    openSheet(`<h2>Add a slot</h2>
+      <div class="note" style="color:var(--mut);margin-bottom:12px">Another accessory, an extra layer, a second dupatta — stack as many as the look needs.</div>
+      <div class="wrapchips" style="margin-bottom:14px">${CATS.map(c=>`<button class="chip" data-add="${c.id}">${c.lbl}</button>`).join("")}</div>
+      <div class="frow"><label>Or a specific accessory</label><div class="wrapchips">${SUBS.map(s=>`<button class="chip mini" data-add="accessory" data-sub="${s}">${s}</button>`).join("")}</div></div>`);
+    $("#sheet").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>{
+      const key="x_"+uid();
+      extraSlots.push({key, cat:b.dataset.add, sub:b.dataset.sub||null});
+      curSlot=key; closeSheet(); render();
+    });
+  };
+}
+/* ============ looks view ============ */
+let lookFilt={q:"", fav:false, occ:null, sort:"new"};
+function lookOccs(lk){
+  if(lk.occs && lk.occs.length) return lk.occs;
+  return [...new Set(lk.itemIds.map(item).filter(Boolean).flatMap(i=>i.occs||[]))];
+}
+function suggestLookName(ids, occs){
+  const its=ids.map(item).filter(Boolean);
+  if(!its.length) return "";
+  const rank={saree:0,dress:1,top:2,blouse:3,bottom:4,outerwear:5,footwear:6,accessory:7};
+  const s=[...its].sort((a,b)=>(rank[a.cat]??9)-(rank[b.cat]??9));
+  const main=s[0], second=s.find(i=>i!==main && ["bottom","blouse","top"].includes(i.cat));
+  let n=main.name + (second? " + "+second.name : "");
+  if(occs && occs.length) n = occs[0]+" · "+n;
+  return n.length>46? n.slice(0,44)+"…" : n;
+}
+function looksView(){
+  if(!looks.length){
+    $("#view").innerHTML = `<div class="empty"><div class="big">No looks yet</div>Compose one in the Studio ✦</div>`;
+    return;
+  }
+  const lastWorn=lk=>lk.wearDates.length? lk.wearDates[lk.wearDates.length-1]:"";
+  let list=looks.filter(lk=>
+    (!lookFilt.fav||lk.fav) &&
+    (!lookFilt.occ || lookOccs(lk).includes(lookFilt.occ)) &&
+    (!lookFilt.q || lk.name.toLowerCase().includes(lookFilt.q) ||
+      lk.itemIds.map(item).filter(Boolean).some(i=>i.name.toLowerCase().includes(lookFilt.q)))
+  );
+  const sorts={
+    new:(a,b)=>b.created-a.created,
+    rated:(a,b)=>(overall(b)||0)-(overall(a)||0),
+    worn:(a,b)=>b.wearDates.length-a.wearDates.length,
+    recent:(a,b)=>lastWorn(b).localeCompare(lastWorn(a)),
+    neglected:(a,b)=>lastWorn(a).localeCompare(lastWorn(b)),
+    comfort:(a,b)=>(b.comfort||0)-(a.comfort||0),
+    style:(a,b)=>(b.style||0)-(a.style||0)
+  };
+  list.sort(sorts[lookFilt.sort]||sorts.new);
+  const bar=`<div class="filters">
+    <input id="lf_q" placeholder="🔍 Search looks" value="${esc(lookFilt.q)}" style="flex:1.5;border-radius:999px;text-align:left">
+    <select id="lf_sort" aria-label="Sort looks">
+      <option value="new" ${lookFilt.sort==="new"?"selected":""}>Newest</option>
+      <option value="rated" ${lookFilt.sort==="rated"?"selected":""}>Top rated</option>
+      <option value="worn" ${lookFilt.sort==="worn"?"selected":""}>Most worn</option>
+      <option value="recent" ${lookFilt.sort==="recent"?"selected":""}>Recently worn</option>
+      <option value="neglected" ${lookFilt.sort==="neglected"?"selected":""}>Neglected</option>
+      <option value="comfort" ${lookFilt.sort==="comfort"?"selected":""}>Comfiest</option>
+      <option value="style" ${lookFilt.sort==="style"?"selected":""}>Best style</option>
+    </select>
+    <select id="lf_occ" aria-label="Occasion" style="flex:.9">
+      <option value="">Any occasion</option>
+      ${OCCS.map(o=>`<option ${lookFilt.occ===o?"selected":""}>${o}</option>`).join("")}
+    </select>
+  </div>
+  <div class="chiprow">
+    <button class="chip mini ${lookFilt.fav?"on":""}" id="lf_fav">♥ Favourites</button>
+    ${(lookFilt.q||lookFilt.fav||lookFilt.occ)?'<button class="chip mini" id="lf_clear">✕ Clear</button>':""}
+  </div>`;
+  const gridHtml = list.length? `<div class="grid">${list.map(lk=>{
+    const imgs = lk.itemIds.map(item).filter(Boolean).slice(0,4);
+    return `<div class="card lookcard" data-id="${lk.id}">
+      ${lk.fav?'<span class="favtag">♥</span>':""}
+      <div class="collage n${imgs.length}">${imgs.map(i=>`<img src="${i.img}" alt="">`).join("")}</div>
+      <div class="meta"><div class="nm">${esc(lk.name)}</div>
+      <div class="sub"><span>${lk.itemIds.length} pieces</span>${overall(lk)?`<span class="minirate">${"★".repeat(overall(lk))}</span>`:""}</div></div>
+    </div>`;}).join("")}</div>` : `<div class="empty"><div class="big">Nothing matches</div>Try clearing the search.</div>`;
+  $("#view").innerHTML = bar+gridHtml;
+  const q=$("#lf_q");
+  q.oninput=()=>{ lookFilt.q=q.value.trim().toLowerCase(); const v=q.value;
+    clearTimeout(q._t); q._t=setTimeout(()=>{ looksView(); const q2=$("#lf_q"); q2.focus(); q2.setSelectionRange(v.length,v.length); },250); };
+  $("#lf_sort").onchange=e=>{ lookFilt.sort=e.target.value; looksView(); };
+  $("#lf_occ").onchange=e=>{ lookFilt.occ=e.target.value||null; looksView(); };
+  $("#lf_fav").onclick=()=>{ lookFilt.fav=!lookFilt.fav; looksView(); };
+  const lc=$("#lf_clear"); if(lc) lc.onclick=()=>{ lookFilt={q:"",fav:false,occ:null,sort:lookFilt.sort}; looksView(); };
+  let tapId=null, tapAt=0, tapTimer=null;
+  $("#view").onclick = e=>{
+    if(e.target.closest(".filters")||e.target.closest(".chiprow")) return;
+    const c=e.target.closest(".card"); if(!c) return;
+    const id=c.dataset.id, now=Date.now();
+    if(tapId===id && now-tapAt<350){
+      clearTimeout(tapTimer); tapId=null;
+      logLookWear(id, today());
+      return;
+    }
+    tapId=id; tapAt=now;
+    clearTimeout(tapTimer);
+    tapTimer=setTimeout(()=>{ tapId=null; lookSheet(id); }, 320);
+  };
+}
+async function logLookWear(id, ds){
+  const lk=looks.find(l=>l.id===id); if(!lk) return;
+  lk.wearDates.push(ds); lk.wearDates.sort();
+  for(const it of lk.itemIds.map(item).filter(Boolean)){ it.wearDates.push(ds); it.wearDates.sort(); await put("items",it); }
+  await put("looks",lk);
+  toast("Wore \""+lk.name+"\" today ✓");
+}
+async function shareLook(lk){
+  const its=lk.itemIds.map(item).filter(Boolean);
+  if(!its.length){ toast("Nothing to share"); return; }
+  toast("Rendering…");
+  const loaded=await Promise.all(its.map(i=>new Promise(res=>{
+    const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=i.img; })));
+  const imgs=loaded.filter(Boolean);
+  if(!imgs.length){ toast("Couldn't load photos"); return; }
+  const W=1080, pad=48, gap=24, cols=imgs.length===1?1:2;
+  const cellW=(W-pad*2-gap*(cols-1))/cols, cellH=cellW*1.25;
+  const rows=Math.ceil(imgs.length/cols), headerH=180, footerH=96;
+  const H=Math.round(headerH+rows*cellH+(rows-1)*gap+footerH);
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const x=c.getContext("2d");
+  x.fillStyle="#F3EBDD"; x.fillRect(0,0,W,H);
+  x.textAlign="center"; x.fillStyle="#2C1E12";
+  x.font="600 38px Georgia, 'Times New Roman', serif";
+  x.fillText("C H I C", W/2, 72);
+  x.fillStyle="#3a2a1a"; x.font="italic 500 46px Georgia, serif";
+  let nm=lk.name||"Look"; if(nm.length>26) nm=nm.slice(0,25)+"…";
+  x.fillText(nm, W/2, 132);
+  const rr=(px,py,pw,ph,r)=>{ x.beginPath(); x.moveTo(px+r,py);
+    x.arcTo(px+pw,py,px+pw,py+ph,r); x.arcTo(px+pw,py+ph,px,py+ph,r);
+    x.arcTo(px,py+ph,px,py,r); x.arcTo(px,py,px+pw,py,r); x.closePath(); };
+  imgs.forEach((im,idx)=>{
+    const col=idx%cols, row=Math.floor(idx/cols);
+    const px=pad+col*(cellW+gap), py=headerH+row*(cellH+gap);
+    x.save(); x.fillStyle="#fff"; rr(px,py,cellW,cellH,20); x.fill(); x.clip();
+    const s=Math.max(cellW/im.width, cellH/im.height), dw=im.width*s, dh=im.height*s;
+    x.drawImage(im, px+(cellW-dw)/2, py+(cellH-dh)/2, dw, dh); x.restore();
+  });
+  x.fillStyle="#6E5A44"; x.font="500 30px Georgia, serif"; x.textAlign="center";
+  const ov=overall(lk);
+  x.fillText(its.length+" pieces"+(ov?"   ·   "+"★".repeat(ov):""), W/2, H-40);
+  c.toBlob(async blob=>{
+    if(!blob){ toast("Couldn't render"); return; }
+    const fname=(lk.name||"look").replace(/[^\w]+/g,"-").replace(/^-|-$/g,"")+".png";
+    const file=new File([blob], fname, {type:"image/png"});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{ await navigator.share({files:[file], title:lk.name||"My look"}); return; }
+      catch(e){ if(e && e.name==="AbortError") return; }
+    }
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href),2000); toast("Saved image ⬇");
+  }, "image/png");
+}
+function lookSheet(id){
+  const lk=looks.find(l=>l.id===id); if(!lk)return;
+  const its=lk.itemIds.map(item).filter(Boolean);
+  openSheet(`
+    <h2>${esc(lk.name)} <button id="l_ren" style="color:var(--mut);font-size:1rem;vertical-align:middle" aria-label="Rename">✎</button></h2>
+    <div class="hrow" style="margin-bottom:12px">${its.map(i=>`<div class="thumb"><img src="${i.img}" alt=""><div class="t">${esc(i.name)}</div></div>`).join("")}</div>
+    <div class="frow"><label>Occasions</label><div class="wrapchips" id="l_occ">
+      ${OCCS.map(o=>`<button class="chip mini ${(lk.occs||[]).includes(o)?"on":""}" data-v="${o}">${o}</button>`).join("")}
+    </div></div>
+    ${ratingRows(lk)}
+    <div class="statline">
+      <div class="stat"><div class="v">${lk.wearDates.length}</div><div class="k">Wears</div></div>
+      <div class="stat"><div class="v">${lk.wearDates.length? lk.wearDates[lk.wearDates.length-1]:"—"}</div><div class="k">Last worn</div></div>
+    </div>
+    <button class="btn ghost" id="l_fav" style="margin-bottom:10px">${lk.fav?"♥ Favourited":"♡ Favourite"}</button>
+    <div class="row2" style="margin-bottom:10px">
+      <input type="date" id="l_wdate" max="${today()}" value="${today()}" style="flex:1.4">
+      <button class="btn ghost" id="l_wearon">Log a wear</button>
+    </div>
+    <div class="row2" style="margin-bottom:10px">
+      <button class="btn ghost" id="l_share">📤 Share</button>
+      <button class="btn ghost" id="l_open">Open in Studio</button>
+    </div>
+    <button class="btn danger" id="l_del">Delete</button>
+  `);
+  wireRatings(lk,"looks",()=>{ lookSheet(id); render(); });
+  $("#l_occ").onclick=async e=>{ const b=e.target.closest(".chip"); if(!b)return;
+    b.classList.toggle("on");
+    lk.occs=[...$("#l_occ").querySelectorAll(".chip.on")].map(c=>c.dataset.v);
+    await put("looks",lk); render();
+  };
+  $("#l_ren").onclick=()=>{
+    const nn=prompt("Rename look", lk.name);
+    if(nn && nn.trim()){ lk.name=nn.trim(); put("looks",lk).then(()=>{ lookSheet(id); render(); }); }
+  };
+  $("#l_share").onclick=()=>shareLook(lk);
+  async function logWear(ds){
+    lk.wearDates.push(ds); lk.wearDates.sort();
+    for(const it of its){ it.wearDates.push(ds); it.wearDates.sort(); await put("items",it); }
+    await put("looks",lk); lookSheet(id); toast("Logged "+ds+" ✓");
+  }
+  $("#l_wearon").onclick = ()=>{
+    const ds=$("#l_wdate").value;
+    if(!ds){ toast("Pick a date"); return; }
+    if(ds>today()){ toast("That's in the future — pin it in Plan instead"); return; }
+    logWear(ds);
+  };
+  $("#l_fav").onclick = async ()=>{ lk.fav=!lk.fav; await put("looks",lk); lookSheet(id); render(); };
+  $("#l_open").onclick = ()=>{
+    sel={}; extraSlots=[];
+    studioMode = its.some(i=>i.cat==="saree")? "saree" : its.some(i=>i.cat==="dress")? "one" : "two";
+    const baseKeys = new Set(studioSlots().map(s=>s.key));
+    its.forEach(i=>{
+      if(baseKeys.has(i.cat) && !sel[i.cat]) sel[i.cat]=i.id;
+      else { const key="x_"+uid(); extraSlots.push({key, cat:i.cat, sub:i.sub||null}); sel[key]=i.id; }
+    });
+    closeSheet(); switchTab("studio");
+  };
+  $("#l_del").onclick = async ()=>{
+    if(!confirm("Delete this look?"))return;
+    looks=looks.filter(l=>l.id!==id); await del("looks",id);
+    closeSheet(); render(); toast("Deleted");
+  };
+}
+
+/* ============ plan: calendar + trips ============ */
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const dstr = d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+const look = id=>looks.find(l=>l.id===id);
+function lookThumb(lk){ const i=lk && item(lk.itemIds[0]); return i? `<img src="${i.img}" alt="">` : ""; }
+
+function planView(){
+  const y=planMonth.getFullYear(), m=planMonth.getMonth();
+  const first=new Date(y,m,1).getDay(), days=new Date(y,m+1,0).getDate();
+  let cells="";
+  for(let i=0;i<first;i++) cells+="<i></i>";
+  for(let d=1;d<=days;d++){
+    const ds=dstr(new Date(y,m,d));
+    const p=plans.filter(p=>p.date===ds);
+    const isToday=ds===today();
+    cells+=`<button class="day ${isToday?"today":""} ${p.length?"has":""}" data-date="${ds}">
+      <span class="n">${d}</span>
+      ${p.length? `<span class="dthumb">${lookThumb(look(p[0].lookId))}</span>`:""}
+      ${p.length>1? `<span class="dmore">+${p.length-1}</span>`:""}</button>`;
+  }
+  $("#view").innerHTML = `<div class="ins">
+    <div class="panel">
+      <div class="calhead">
+        <button class="iconbtn" id="pm">‹</button>
+        <h3>${MONTHS[m]} ${y}</h3>
+        <button class="iconbtn" id="nm">›</button>
+      </div>
+      <div class="cal dow"><i>S</i><i>M</i><i>T</i><i>W</i><i>T</i><i>F</i><i>S</i></div>
+      <div class="cal" id="calgrid">${cells}</div>
+    </div>
+    <div class="panel"><h3>Trips</h3><div class="note">Pick looks per day, get a packing checklist.</div>
+      ${trips.map(t=>{
+        const pk=packItems(t), ex=t.extras||[];
+        const total=pk.length+ex.length;
+        const done=pk.filter(i=>(t.packed||{})[i.id]).length + ex.filter(x=>x.done).length;
+        return `<div class="cpw trip" data-id="${t.id}"><span>${esc(t.name)} <span style="color:var(--mut)">· ${t.start} → ${t.end}</span></span><span class="amt">${total?`${done}/${total} packed`:"plan ›"}</span></div>`;
+      }).join("")}
+      <button class="btn ghost" id="newTrip" style="margin-top:10px">+ New trip</button>
+    </div>
+  </div>`;
+  $("#pm").onclick=()=>{ planMonth.setMonth(m-1); render(); };
+  $("#nm").onclick=()=>{ planMonth.setMonth(m+1); render(); };
+  $("#calgrid").onclick=e=>{ const d=e.target.closest(".day"); if(d) daySheet(d.dataset.date); };
+  $("#newTrip").onclick=()=>tripEditSheet(null);
+  $("#view").querySelectorAll(".trip").forEach(r=>r.onclick=()=>tripSheet(r.dataset.id));
+}
+
+function pickLookSheet(title, cb){
+  if(!looks.length){ toast("Save a look in the Studio first"); return; }
+  openSheet(`<h2>${title}</h2><div class="grid" style="padding:0">${
+    [...looks].sort((a,b)=>b.created-a.created).map(lk=>{
+      const imgs=lk.itemIds.map(item).filter(Boolean).slice(0,4);
+      return `<div class="card lookcard" data-id="${lk.id}">
+        <div class="collage n${imgs.length}">${imgs.map(i=>`<img src="${i.img}" alt="">`).join("")}</div>
+        <div class="meta"><div class="nm">${esc(lk.name)}</div></div></div>`;
+    }).join("")}</div>`);
+  $("#sheet").onclick = e=>{ const c=e.target.closest(".card"); if(c){ $("#sheet").onclick=null; cb(c.dataset.id); } };
+}
+
+function daySheet(ds){
+  const dayPlans = plans.filter(p=>p.date===ds);
+  openSheet(`
+    <h2>${ds}</h2>
+    ${dayPlans.map(p=>{ const lk=look(p.lookId);
+      return `<div class="cpw"><span>${lk?esc(lk.name):"look removed"}${p.note?` <span style="color:var(--mut)">— ${esc(p.note)}</span>`:""}</span>
+        <button style="color:var(--danger)" data-rm="${p.id}">✕</button></div>`;}).join("")}
+    <div class="frow" style="margin-top:12px"><label>Note (occasion)</label><input id="p_note" placeholder="e.g. Tara's school day"></div>
+    <button class="btn" id="p_add">＋ Pin a look to this day</button>
+  `);
+  $("#sheet").querySelectorAll("[data-rm]").forEach(b=>b.onclick=async ()=>{
+    plans=plans.filter(p=>p.id!==b.dataset.rm); await del("plans",b.dataset.rm); daySheet(ds); render();
+  });
+  $("#p_add").onclick=()=>{
+    const note=$("#p_note").value.trim();
+    pickLookSheet("Pin to "+ds, async lookId=>{
+      const rep = plans.find(x=>x.lookId===lookId && x.date!==ds && Math.abs(new Date(x.date)-new Date(ds))<30*864e5);
+      const p={id:uid(), date:ds, lookId, note};
+      plans.push(p); await put("plans",p);
+      daySheet(ds); render();
+      toast(rep? "Pinned — heads up, you wore this look on "+rep.date : "Pinned ✓");
+    });
+  };
+}
+
+/* ---- trips ---- */
+function tripDays(t){
+  const out=[]; let d=new Date(t.start);
+  const end=new Date(t.end);
+  while(d<=end && out.length<31){ out.push(dstr(d)); d=new Date(d.getTime()+864e5); }
+  return out;
+}
+function dayLookIds(t,d){
+  const v=(t.days||{})[d];
+  return !v? [] : Array.isArray(v)? v : [v];
+}
+function packItems(t){
+  const ids=new Set(tripDays(t).flatMap(d=>dayLookIds(t,d)).flatMap(lid=>{const lk=look(lid); return lk?lk.itemIds:[];}));
+  return [...ids].map(item).filter(Boolean);
+}
+function tripEditSheet(existing){
+  openSheet(`
+    <h2>${existing?"Edit trip":"New trip"}</h2>
+    <div class="frow"><label>Name</label><input id="t_name" value="${existing?esc(existing.name):""}" placeholder="e.g. Coimbatore weekend"></div>
+    <div class="row2">
+      <div class="frow"><label>From</label><input type="date" id="t_start" value="${existing?existing.start:today()}"></div>
+      <div class="frow"><label>To</label><input type="date" id="t_end" value="${existing?existing.end:today()}"></div>
+    </div>
+    <button class="btn" id="t_save">${existing?"Save":"Create trip"}</button>
+    ${existing?'<button class="btn danger" id="t_del" style="margin-top:10px">Delete trip</button>':""}
+  `);
+  $("#t_save").onclick=async ()=>{
+    const name=$("#t_name").value.trim()||"Trip", start=$("#t_start").value, end=$("#t_end").value;
+    if(!start||!end||end<start){ toast("Check the dates"); return; }
+    let t=existing;
+    if(t) Object.assign(t,{name,start,end});
+    else { t={id:uid(), name, start, end, days:{}, packed:{}, extras:[]}; trips.push(t); }
+    await put("trips",t); closeSheet(); tripSheet(t.id); render();
+  };
+  if(existing) $("#t_del").onclick=async ()=>{
+    if(!confirm("Delete this trip?"))return;
+    trips=trips.filter(x=>x.id!==existing.id); await del("trips",existing.id);
+    closeSheet(); render(); toast("Deleted");
+  };
+}
+function tripSheet(id){
+  const t=trips.find(x=>x.id===id); if(!t)return;
+  const days=tripDays(t);
+  const packing=packItems(t);
+  const byCat={};
+  packing.forEach(i=>{ (byCat[i.cat]=byCat[i.cat]||[]).push(i); });
+  const done=[...packing.map(i=>t.packed[i.id]), ...(t.extras||[]).map(x=>x.done)].filter(Boolean).length;
+  const total=packing.length+(t.extras||[]).length;
+  openSheet(`
+    <h2>${esc(t.name)}</h2>
+    <div class="dsub">${t.start} → ${t.end} · <button style="color:var(--acc)" id="t_edit">edit</button></div>
+    <div class="frow"><label>Looks per day</label>
+      ${days.map(d=>{
+        const lks=dayLookIds(t,d).map(look).filter(Boolean);
+        return `<div class="cpw" style="flex-wrap:wrap"><span style="width:100%">${d}</span>
+          ${lks.map(lk=>`<span class="chip mini" style="margin:4px 6px 0 0">${esc(lk.name)} <b data-dlrm="${d}|${lk.id}" style="color:var(--danger);font-weight:400">✕</b></span>`).join("")}
+          <button class="chip mini dayadd" data-d="${d}" style="margin-top:4px;color:var(--acc)">＋ add look</button>
+        </div>`;}).join("")}
+    </div>
+    ${total?`<div class="frow"><label>Packing — ${done}/${total}</label>
+      <div class="bar"><i style="width:${total?done/total*100:0}%"></i></div>
+      ${Object.entries(byCat).map(([c,arr])=>`
+        <div class="dsub" style="margin:8px 0 2px">${catLbl(c)}</div>
+        ${arr.map(i=>`<div class="cpw pk" data-id="${i.id}"><span>${t.packed[i.id]?"☑":"☐"} ${esc(i.name)}</span></div>`).join("")}`).join("")}
+      ${(t.extras||[]).map(x=>`<div class="cpw px" data-id="${x.id}"><span>${x.done?"☑":"☐"} ${esc(x.text)}</span><button style="color:var(--danger)" data-xrm="${x.id}">✕</button></div>`).join("")}
+    </div>`:""}
+    <div class="row2"><input id="t_extra" placeholder="Add essential (charger, meds…)"><button class="btn ghost" id="t_addx" style="flex:0 0 80px">Add</button></div>
+  `);
+  $("#t_edit").onclick=()=>tripEditSheet(t);
+  $("#sheet").querySelectorAll(".dayadd").forEach(r=>r.onclick=()=>{
+    pickLookSheet("Look for "+r.dataset.d, async lookId=>{
+      const arr=dayLookIds(t,r.dataset.d);
+      if(!arr.includes(lookId)) arr.push(lookId);
+      t.days[r.dataset.d]=arr; await put("trips",t); tripSheet(id); render();
+    });
+  });
+  $("#sheet").querySelectorAll("[data-dlrm]").forEach(b=>b.onclick=async e=>{
+    e.stopPropagation();
+    const [d,lid]=b.dataset.dlrm.split("|");
+    t.days[d]=dayLookIds(t,d).filter(x=>x!==lid);
+    await put("trips",t); tripSheet(id); render();
+  });
+  $("#sheet").querySelectorAll(".pk").forEach(r=>r.onclick=async ()=>{
+    t.packed[r.dataset.id]=!t.packed[r.dataset.id]; await put("trips",t); tripSheet(id);
+  });
+  $("#sheet").querySelectorAll(".px").forEach(r=>r.onclick=async e=>{
+    const rm=e.target.closest("[data-xrm]");
+    if(rm){ t.extras=t.extras.filter(x=>x.id!==rm.dataset.xrm); }
+    else { const x=t.extras.find(x=>x.id===r.dataset.id); x.done=!x.done; }
+    await put("trips",t); tripSheet(id);
+  });
+  $("#t_addx").onclick=async ()=>{
+    const v=$("#t_extra").value.trim(); if(!v)return;
+    (t.extras=t.extras||[]).push({id:uid(), text:v, done:false});
+    await put("trips",t); tripSheet(id);
+  };
+}
+
+/* ============ insights ============ */
+function insightsView(){
+  const usedIds = new Set(looks.flatMap(l=>l.itemIds));
+  const never = items.filter(i=>!usedIds.has(i.id));
+  const neglected = items.filter(i=>!i.often && (i.wearDates.length===0 ||
+    (Date.now()-new Date(i.wearDates[i.wearDates.length-1])>90*864e5))).sort((a,b)=>a.wearDates.length-b.wearDates.length);
+  const counts = CATS.map(c=>({c, n:items.filter(i=>i.cat===c.id).length}));
+  const maxN = Math.max(1,...counts.map(x=>x.n));
+  const cpw = items.filter(i=>i.price).map(i=>({i, v:i.wearDates.length? i.price/i.wearDates.length : i.price}))
+    .sort((a,b)=>b.v-a.v).slice(0,6);
+  // heatmap: last 70 days of look logs
+  const logDays = new Set(looks.flatMap(l=>l.wearDates).concat(items.flatMap(i=>i.wearDates)));
+  let heat="";
+  for(let d=69; d>=0; d--){
+    const day=new Date(Date.now()-d*864e5).toISOString().slice(0,10);
+    heat += `<i class="${logDays.has(day)?"on":""}" title="${day}"></i>`;
+  }
+  const thumbs = arr => arr.length? `<div class="hrow">${arr.slice(0,10).map(i=>
+    `<div class="thumb" data-id="${i.id}"><img src="${i.img}" alt=""><div class="t">${esc(i.name)}</div></div>`).join("")}</div>`
+    : `<div class="note" style="margin:0">Nothing here — nice.</div>`;
+  $("#view").innerHTML = `<div class="ins">
+    <div class="panel"><h3>Storage</h3><div class="note" id="stNote">Measuring…</div><div class="bar"><i id="stBar" style="width:0%"></i></div></div>
+    <div class="panel"><h3>Outfit diary</h3><div class="note">Days you logged a wear, last 10 weeks.</div><div class="heat">${heat}</div></div>
+    ${items.some(i=>i.todo)?`<div class="panel"><h3>To fix &amp; fetch</h3><div class="note">Alterations pending and pieces to buy — tap when sorted.</div>
+      ${items.filter(i=>i.todo).map(i=>`<div class="cpw" data-todo="${i.id}"><span>${i.todo.type==="alteration"?"✂":"🛍"} ${esc(i.name)}${i.todo.note?` <span style="color:var(--mut)">— ${esc(i.todo.note)}</span>`:""}</span><span class="amt">›</span></div>`).join("")}
+    </div>`:""}
+    <div class="panel"><h3>Wishlist ✨</h3><div class="note">Pieces you're dreaming of — tap one when it comes home.</div>
+      ${wishes.length? [...wishes].sort((a,b)=>b.created-a.created).map(w=>`<div class="cpw" data-wish="${w.id}"><span>${esc(w.name)} <span style="color:var(--mut)">· ${catLbl(w.cat)}${w.note?" — "+esc(w.note):""}</span></span><span class="amt">${w.price?"₹"+w.price:"›"}</span></div>`).join("") : ""}
+      <button class="btn ghost" id="addWish" style="margin-top:10px">＋ Add a wish</button>
+    </div>
+    <div class="panel"><h3>Never styled</h3><div class="note">Pieces that appear in no saved look — style them in the Studio or consider letting go.</div>${thumbs(never)}</div>
+    <div class="panel"><h3>Neglected</h3><div class="note">Unworn, or untouched for 90+ days.</div>${thumbs(neglected)}</div>
+    <div class="panel"><h3>Closet balance</h3><div class="note">Where your closet is heavy or thin.</div>
+      ${counts.map(({c,n})=>`<div class="catlbl"><span>${c.lbl}</span><span>${n}</span></div><div class="bar"><i style="width:${n/maxN*100}%"></i></div>`).join("")}
+    </div>
+    <div class="panel"><h3>Cost per wear</h3><div class="note">Highest first — wear these more or shop less alike.</div>
+      ${cpw.length? cpw.map(({i,v})=>`<div class="cpw"><span>${esc(i.name)} <span style="color:var(--mut)">· ${i.wearDates.length} wears</span></span><span class="amt">₹${v.toFixed(0)}</span></div>`).join("") : `<div class="note" style="margin:0">Add prices to pieces to see this.</div>`}
+    </div>
+  </div>`;
+  $("#addWish").onclick=()=>wishSheet(null);
+  $("#view").onclick = e=>{
+    if(e.target.closest("#addWish")) return;
+    const w=e.target.closest("[data-wish]"); if(w){ wishSheet(wishes.find(x=>x.id===w.dataset.wish)); return; }
+    if(false) return;
+    const td=e.target.closest("[data-todo]"); if(td){ detailSheet(td.dataset.todo); return; }
+    const t=e.target.closest(".thumb"); if(t&&t.dataset.id) detailSheet(t.dataset.id); };
+  fillStorageMeter();
+}
+
+async function fillStorageMeter(){
+  const el=$("#stNote"); if(!el) return;
+  const photoBytes = items.reduce((s,i)=>s+(i.img? i.img.length*0.75 : 0), 0)
+    + wishes.reduce((s,w)=>s+(w.img? w.img.length*0.75 : 0), 0);
+  const mb=x=>(x/1048576).toFixed(1);
+  let line=`${mb(photoBytes)} MB of photos across ${items.length} pieces in this closet.`;
+  try{
+    if(navigator.storage && navigator.storage.estimate){
+      const est=await navigator.storage.estimate();
+      if(est.quota){
+        line+=` Device allows ~${Math.round(est.quota/1048576)} MB; ${mb(est.usage||0)} MB used in total.`;
+        const b=$("#stBar"); if(b) b.style.width=Math.min(100,(est.usage||0)/est.quota*100).toFixed(1)+"%";
+      }
+    }
+  }catch(e){}
+  const el2=$("#stNote"); if(el2) el2.textContent=line+" Back up now and then from the closets menu 💾";
+}
+/* ============ nav & boot ============ */
+function switchTab(t){
+  tab=t;
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on", b.dataset.tab===t));
+  $("#tagline").textContent = TAGLINES[t];
+  $("#fab").classList.toggle("hidden", t!=="closet");
+  render();
+}
+document.querySelector("nav").onclick = e=>{
+  const b=e.target.closest("button"); if(b) switchTab(b.dataset.tab);
+};
+$("#fab").onclick = ()=>itemSheet(null);
+function render(){
+  if(tab==="closet") closetView();
+  else if(tab==="studio") studioView();
+  else if(tab==="looks") looksView();
+  else if(tab==="plan") planView();
+  else insightsView();
+}
+$("#profBtn").onclick=profileSheet;
+
+// Paint the UI immediately (correct palette, tab chrome, FAB) so it's never blank,
+// then load this closet's data in the background and re-render.
+applyPal(activeProfile().pal);
+updateProfBtn();
+switchTab("closet");
+
+(async function boot(){
+  try{
+    await idb();
+    if(!localStorage.getItem("chicMigrated")){
+      for(const st of ["items","looks","plans","trips","wishes"]){
+        const rows=await all(st);
+        for(const r of rows) if(!r.pid){ r.pid=profiles[0].id; await put(st,r); }
+      }
+      localStorage.setItem("chicMigrated","1");
+    }
+    if(!localStorage.getItem("chicRateMig")){
+      for(const st of ["items","looks"]){
+        const rows=await all(st);
+        for(const r of rows){
+          let ch=false;
+          if(r.style===undefined){ r.style=r.rating||0; ch=true; }
+          if(r.comfort===undefined){ r.comfort=0; ch=true; }
+          if("rating" in r){ delete r.rating; ch=true; }
+          if(ch) await put(st,r);
+        }
+      }
+      localStorage.setItem("chicRateMig","1");
+    }
+    saveProfiles();
+    await reloadProfile();
+  }catch(e){ toast("Storage unavailable — data won't persist"); }
+})();
+$("#importIn").onchange=e=>{ const f=e.target.files[0]; e.target.value=""; if(f) importAll(f); };
+</script>
+</body>
+</html>
