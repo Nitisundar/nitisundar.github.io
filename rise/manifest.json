@@ -1,6 +1,7 @@
 {
   "name": "Rise",
   "short_name": "Rise",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -8,8 +9,7 @@
   "background_color": "#F7F5F1",
   "theme_color": "#3E6B5E",
   "icons": [
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
-    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" }
+    { "src": "icon.png", "sizes": "256x256", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "256x256", "type": "image/png", "purpose": "maskable" }
   ]
 }
