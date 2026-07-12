@@ -79,13 +79,20 @@ html:not([data-theme="light"]) .decor img{opacity:.15}
 .d2{top:calc(-4px + env(safe-area-inset-top)); right:-18px; width:106px; transform:rotate(9deg)}
 .d3{bottom:calc(106px + env(safe-area-inset-bottom)); right:-16px; width:120px; transform:rotate(8deg)}
 .d4{bottom:calc(96px + env(safe-area-inset-bottom)); left:-12px; width:104px; transform:rotate(-8deg)}
-.d5{top:41vh; left:-24px; width:104px; transform:rotate(-8deg)}
-.d6{top:46vh; right:-26px; width:96px; transform:rotate(10deg); opacity:.13}
-.d9{top:20vh; left:-14px; width:86px; transform:rotate(-6deg); opacity:.13}
-.d10{top:29vh; right:-24px; width:94px; transform:scaleX(-1) rotate(6deg); opacity:.13}
+.d5{top:46vh; left:-24px; width:104px; transform:rotate(-8deg)}
+.d6{top:48vh; right:-26px; width:96px; transform:rotate(10deg); opacity:.13}
+.d9{top:22vh; left:-14px; width:86px; transform:rotate(-6deg); opacity:.13}
+.d10{top:28vh; right:-24px; width:94px; transform:scaleX(-1) rotate(6deg); opacity:.13}
 .d12{bottom:calc(96px + env(safe-area-inset-bottom)); left:50%; width:96px; transform:translateX(-50%) rotate(-3deg); opacity:.14}
 html[data-theme="light"] .d6, html[data-theme="light"] .d9,
 html[data-theme="light"] .d10, html[data-theme="light"] .d12{opacity:.18}
+/* installed app / fullscreen: taller viewport, shift mid pieces down */
+@media (display-mode: standalone), (display-mode: fullscreen){
+  .d9{top:32vh}
+  .d10{top:38vh}
+  .d5{top:66vh}
+  .d6{top:68vh}
+}
 /* ---------- header ---------- */
 header{display:flex; justify-content:center; padding:calc(34px + env(safe-area-inset-top)) 20px 4px}
 .wordmark{font-family:'Italiana',serif; font-size:2rem; letter-spacing:.32em; text-transform:uppercase;
@@ -299,7 +306,7 @@ nav button:focus-visible{outline:2px solid var(--acc)}
 <div class="topbar">
   <button class="iconbtn" id="profBtn" aria-label="Switch closet">👤</button>
   <button class="iconbtn" id="themeBtn" aria-label="Toggle dark or light">◐</button>
-  <button class="iconbtn" id="fsBtn" aria-label="Fullscreen">⛶</button>
+  <button class="iconbtn" id="fsBtn" aria-label="Fullscreen"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></button>
 </div>
 
 <main id="view"></main>
@@ -608,7 +615,10 @@ $("#fsBtn").onclick=()=>{
   }
 };
 document.addEventListener("fullscreenchange",()=>{
-  $("#fsBtn").textContent = document.fullscreenElement? "🗕" : "⛶";
+  const fs=document.fullscreenElement;
+  $("#fsBtn").innerHTML = fs
+    ? '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 2v4H2M14 6h-4V2M10 14v-4h4M2 10h4v4"/></svg>'
+    : '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg>';
 });
 
 const PALS=[["orchid","Orchid","#141019","#C9B8FF"],["coffee","Coffee","#1C130D","#E89A3C"],
@@ -634,6 +644,41 @@ function compress(file){ return new Promise((res,rej)=>{
   img.onerror=()=>{URL.revokeObjectURL(u); rej(new Error("bad image"));};
   img.src=u;
 });}
+let bgPipe=null;
+async function removeBg(dataUrl, onStatus){
+  if(!bgPipe){
+    onStatus("Loading AI (~40 MB, once)…");
+    const {pipeline, env} = await import("https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.3.1");
+    env.allowLocalModels=false;
+    bgPipe = await pipeline("image-segmentation","briaai/RMBG-1.4",{
+      progress_callback:p=>{ if(p.status==="progress"&&p.total) onStatus("Loading AI… "+Math.round(p.loaded/p.total*100)+"%"); }
+    });
+  }
+  onStatus("✨ Working…");
+  const out = await bgPipe(dataUrl);
+  const mask = out[0].mask;
+  const img = await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=dataUrl; });
+  const W=img.width, H=img.height;
+  // subject with mask as alpha
+  const t=document.createElement("canvas"); t.width=W; t.height=H;
+  const tx=t.getContext("2d"); tx.drawImage(img,0,0);
+  const id=tx.getImageData(0,0,W,H);
+  const mc=document.createElement("canvas"); mc.width=mask.width; mc.height=mask.height;
+  const mi=mc.getContext("2d").createImageData(mask.width,mask.height);
+  for(let i=0;i<mask.data.length;i++){ mi.data[i*4]=255; mi.data[i*4+1]=255; mi.data[i*4+2]=255; mi.data[i*4+3]=mask.data[i]; }
+  mc.getContext("2d").putImageData(mi,0,0);
+  const ms=document.createElement("canvas"); ms.width=W; ms.height=H;
+  ms.getContext("2d").drawImage(mc,0,0,W,H);
+  const md=ms.getContext("2d").getImageData(0,0,W,H).data;
+  for(let i=0;i<W*H;i++) id.data[i*4+3]=md[i*4+3];
+  tx.putImageData(id,0,0);
+  // flatten onto warm cream
+  const c=document.createElement("canvas"); c.width=W; c.height=H;
+  const x=c.getContext("2d");
+  x.fillStyle="#F3EBDD"; x.fillRect(0,0,W,H);
+  x.drawImage(t,0,0);
+  return c.toDataURL("image/jpeg",.85);
+}
 function dominantColor(dataUrl){ return new Promise(res=>{
   const img=new Image();
   img.onload=()=>{
@@ -699,6 +744,10 @@ function itemSheet(existing){
         <button class="btn ghost" id="phCam">📷 Camera</button>
         <button class="btn ghost" id="phGal">🖼 Gallery</button>
       </div>
+      <div class="row2" style="margin-top:8px">
+        <button class="btn ghost" id="phBg">🪄 Remove background</button>
+        <button class="btn ghost hidden" id="phBgUndo">↩ Undo</button>
+      </div>
     </div>
     <div class="frow"><label>Name</label><input id="f_name" placeholder="e.g. Mustard kurti" value="${esc(it.name)}"></div>
     <div class="frow"><label>Category</label><div class="wrapchips" id="f_cat">
@@ -725,6 +774,28 @@ function itemSheet(existing){
   `);
   $("#phGal").onclick = ()=> $("#fileIn").click();
   $("#phCam").onclick = ()=> $("#camIn").click();
+  let bgRaw=null;
+  $("#phBg").onclick = async ()=>{
+    if(!pendingImg){ toast("Add a photo first"); return; }
+    const btn=$("#phBg"); btn.disabled=true;
+    try{
+      bgRaw=pendingImg;
+      pendingImg = await removeBg(pendingImg, s=>{ btn.textContent=s; });
+      $("#ph").innerHTML=`<img src="${pendingImg}" alt="">`;
+      $("#phBgUndo").classList.remove("hidden");
+      toast("Backdrop swapped ✨ Undo if it misfired");
+    }catch(err){
+      toast(navigator.onLine? "Couldn't process that photo" : "Needs internet the first time — the AI downloads once, then works offline");
+      bgRaw=null;
+    }
+    btn.textContent="🪄 Remove background"; btn.disabled=false;
+  };
+  $("#phBgUndo").onclick = ()=>{
+    if(!bgRaw) return;
+    pendingImg=bgRaw; bgRaw=null;
+    $("#ph").innerHTML=`<img src="${pendingImg}" alt="">`;
+    $("#phBgUndo").classList.add("hidden");
+  };
   $("#f_cat").onclick = e=>{ const b=e.target.closest(".chip"); if(!b)return;
     $("#f_cat").querySelectorAll(".chip").forEach(c=>c.classList.remove("on")); b.classList.add("on");
     const subs=subsFor(b.dataset.v), row=$("#f_subrow");

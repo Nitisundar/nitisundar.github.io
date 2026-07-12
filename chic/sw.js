@@ -1,4 +1,4 @@
-const CACHE = "chic-v1";
+const CACHE = "chic-v2";
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(["./", "./icon.png", "./manifest.json"])));
   self.skipWaiting();
@@ -10,6 +10,7 @@ self.addEventListener("activate", e => {
 });
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  if (new URL(e.request.url).origin !== location.origin) return;
   e.respondWith(
     fetch(e.request).then(r => {
       const copy = r.clone();
