@@ -407,6 +407,15 @@ main{padding:14px 16px calc(env(safe-area-inset-bottom) + 96px);max-width:640px;
 .cal-day-row .sub{display:block;font-size:.74rem;color:var(--ink-soft)}
 .cal-empty{font-size:.85rem;color:var(--ink-soft);text-align:center;padding:14px 0}
 /* ---- trip assign ---- */
+.trip-pick{display:flex;flex-direction:column;gap:8px}
+.trip-pick select{
+  appearance:none;-webkit-appearance:none;
+  width:100%;padding:10px 30px 10px 12px;border:1px solid var(--line);
+  border-radius:12px;background:var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238A9A90' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 11px center/11px;
+  outline:none;font-size:1rem;color:var(--ink);
+}
+.trip-pick select:focus{border-color:var(--accent)}
+.trip-pick input[hidden]{display:none}
 .date-row{display:flex;gap:10px}
 .date-row .field{flex:1}
 .trip-row{display:flex;align-items:center;gap:11px;padding:10px 4px;border-bottom:1px solid var(--line);font-size:.92rem;cursor:pointer}
@@ -556,9 +565,11 @@ main{padding:14px 16px calc(env(safe-area-inset-bottom) + 96px);max-width:640px;
       <datalist id="cityList"></datalist>
     </div>
     <div class="field">
-      <label for="fTrip">🧳 Trip (optional)</label>
-      <input id="fTrip" list="tripList" placeholder="e.g. Goa trip 2026">
-      <datalist id="tripList"></datalist>
+      <label for="fTripSel">🧳 Trip (optional)</label>
+      <div class="trip-pick">
+        <select id="fTripSel"></select>
+        <input id="fTrip" placeholder="Name the new trip — e.g. Goa trip 2026" hidden>
+      </div>
     </div>
     <div class="field place-only">
       <label for="fMaps">Google Maps link</label>
@@ -677,9 +688,11 @@ main{padding:14px 16px calc(env(safe-area-inset-bottom) + 96px);max-width:640px;
     <div class="grabber"></div>
     <h2>Assign entries to a trip</h2>
     <div class="field">
-      <label for="tripName">Trip name</label>
-      <input id="tripName" list="tripList2" placeholder="e.g. Goa trip 2026">
-      <datalist id="tripList2"></datalist>
+      <label for="tripSel">Trip</label>
+      <div class="trip-pick">
+        <select id="tripSel"></select>
+        <input id="tripName" placeholder="Name the new trip — e.g. Goa trip 2026" hidden>
+      </div>
     </div>
     <div class="date-row">
       <div class="field"><label for="tripFrom">From</label><input type="date" id="tripFrom"></div>
@@ -1004,6 +1017,39 @@ function card(p, q){
   return c;
 }
 
+/* ---- trip picker: dropdown of existing trips + "New trip…" reveals a text box ---- */
+const NEW_TRIP = '__new__';
+function fillTripPicker(selId, inputId, current){
+  const sel = $(selId), inp = $(inputId);
+  const trips = allTrips();
+  const known = current && trips.includes(current);
+  let h = '<option value="">— No trip —</option>';
+  trips.forEach(t => {
+    h += '<option value="' + esc(t) + '"' + (known && t === current ? ' selected' : '') + '>🧳 ' + esc(t) + '</option>';
+  });
+  h += '<option value="' + NEW_TRIP + '"' + (current && !known ? ' selected' : '') + '>➕ New trip…</option>';
+  sel.innerHTML = h;
+  if(current && !known){
+    sel.value = NEW_TRIP;
+    inp.hidden = false;
+    inp.value = current;
+  } else {
+    sel.value = known ? current : '';
+    inp.hidden = true;
+    inp.value = '';
+  }
+  sel.onchange = () => {
+    const isNew = sel.value === NEW_TRIP;
+    inp.hidden = !isNew;
+    if(isNew) setTimeout(() => inp.focus(), 60); else inp.value = '';
+  };
+}
+function tripPickerValue(selId, inputId){
+  const v = $(selId).value;
+  if(v === NEW_TRIP) return $(inputId).value.trim();
+  return v;
+}
+
 /* ================= Editor ================= */
 let editorCat = 'restaurant';
 let editorMode = 'place';   // 'place' = add/edit place, 'entry' = append a new dated entry
@@ -1089,10 +1135,9 @@ function openEditor(id){
   renderStatusSeg();
   renderStars();
   draftPhotos = p && p.photos ? [...p.photos] : [];
-  // datalists of known cities and trips
+  // known cities for autocomplete; trips via the picker
   $('cityList').innerHTML = cityKeys().map(c => '<option value="' + esc(c) + '">').join('');
-  $('tripList').innerHTML = allTrips().map(t => '<option value="' + esc(t) + '">').join('');
-  $('fTrip').value = p ? ((p.entries && p.entries[p.entries.length - 1].trip) || '') : '';
+  fillTripPicker('fTripSel', 'fTrip', p ? ((p.entries && p.entries[p.entries.length - 1].trip) || '') : '');
   renderCatPicker();
   renderDraftPhotos();
   overlayShow('editorOverlay');
@@ -1102,7 +1147,7 @@ function closeEditor(){ overlayHide(); }
 
 function entryFromForm(){
   return {
-    trip: $('fTrip').value.trim(),
+    trip: tripPickerValue('fTripSel', 'fTrip'),
     rating: editorRating,
     cost: $('fCost').value.trim(),
     liked: $('fLiked').value.trim(),
@@ -1159,8 +1204,8 @@ function openEntry(id){
   $('saveBtn').textContent = 'Add entry';
   editorRating = 0;
   renderStars();
-  ['fCost','fLiked','fDisliked','fNotes','fMemory','fTrip'].forEach(f => $(f).value = '');
-  $('tripList').innerHTML = allTrips().map(t => '<option value="' + esc(t) + '">').join('');
+  ['fCost','fLiked','fDisliked','fNotes','fMemory'].forEach(f => $(f).value = '');
+  fillTripPicker('fTripSel', 'fTrip', '');
   overlayShow('editorOverlay');
 }
 async function saveEntry(){
@@ -1459,8 +1504,7 @@ function openTripAssign(){
   // default range: the month currently shown in the calendar
   $('tripFrom').value = isoDate(new Date(calYear, calMonth, 1));
   $('tripTo').value = isoDate(new Date(calYear, calMonth + 1, 0));
-  $('tripName').value = '';
-  $('tripList2').innerHTML = allTrips().map(t => '<option value="' + esc(t) + '">').join('');
+  fillTripPicker('tripSel', 'tripName', '');
   renderTripEntries();
   overlayShow('tripOverlay');
 }
@@ -1507,8 +1551,12 @@ function renderTripEntries(){
   });
 }
 async function saveTrip(){
-  const name = $('tripName').value.trim();
-  if(!name){ toast('Name the trip first'); $('tripName').focus(); return; }
+  const name = tripPickerValue('tripSel', 'tripName');
+  if(!name){
+    toast('Pick a trip or name a new one');
+    ($('tripSel').value === NEW_TRIP ? $('tripName') : $('tripSel')).focus();
+    return;
+  }
   const box = $('tripEntries');
   let assigned = 0, removed = 0;
   const touched = new Set();

@@ -1,5 +1,5 @@
 /* Trove service worker — offline shell cache */
-const CACHE = 'trove-v4';
+const CACHE = 'trove-v5';
 const ASSETS = [
   './',
   './index.html',
