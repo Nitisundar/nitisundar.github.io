@@ -1,4 +1,4 @@
-const CACHE = 'playroom-v1';
+const CACHE = 'playroom-v2';
 const PRECACHE = ['./', './icon.png', './manifest.json'];
 
 self.addEventListener('install', (e) => {
