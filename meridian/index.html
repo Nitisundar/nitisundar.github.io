@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Meridian</title>
+<meta name="description" content="Follow our ship across the world, live.">
+<meta name="theme-color" content="#04060b">
+<meta property="og:title" content="Meridian · Follow our ship">
+<meta property="og:description" content="See where our ship is right now and where it's heading next.">
+<meta property="og:image" content="https://nitisundar.github.io/meridian/assets/og.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="assets/leaflet.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+<style>
+@font-face{font-family:Inter;src:url(assets/inter.woff2) format('woff2');font-weight:100 900;font-display:swap}
+@font-face{font-family:Serif;src:url(assets/serif.woff2) format('woff2');font-display:swap}
+@font-face{font-family:Serif;src:url(assets/serif-italic.woff2) format('woff2');font-style:italic;font-display:swap}
+:root{
+  --bg:#04060b; --ink:#f4f8fd; --ink2:rgba(232,240,250,.82); --ink3:rgba(226,236,248,.62);
+  --line:rgba(255,255,255,.09); --glass:rgba(12,18,30,.58); --glass2:rgba(20,28,44,.55);
+  --sea:#7fe3ff; --gold:#f2c46d; --home:#ffb27a; --ok:#7ef0b8;
+  --safeB:env(safe-area-inset-bottom,0px); --safeT:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden;overscroll-behavior:none;-webkit-font-smoothing:antialiased}
+canvas#gl{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+canvas#gl:active{cursor:grabbing}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+.glass{background:var(--glass);backdrop-filter:blur(22px) saturate(1.4);-webkit-backdrop-filter:blur(22px) saturate(1.4);border:1px solid var(--line);box-shadow:0 20px 60px -20px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.06)}
+
+/* labels */
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.lb{position:absolute;left:0;top:0;white-space:nowrap;will-change:transform,opacity;transition:opacity .35s;opacity:0}
+.lb.c{font-size:13px;letter-spacing:.16em;text-transform:uppercase;color:#fff;font-weight:650;text-shadow:0 1px 3px rgba(0,0,0,.95),0 0 12px rgba(0,0,0,.8)}
+.lb.c.big{font-size:15px;letter-spacing:.2em}
+.lb.c.hi{color:var(--gold)}
+.lb.s{font-family:Serif;font-style:italic;font-size:17px;color:rgba(185,225,255,.9);letter-spacing:.03em;text-shadow:0 1px 6px rgba(0,0,0,.8)}
+.lb.t{font-size:13.5px;font-weight:550;color:#fff;text-shadow:0 1px 3px #000,0 0 10px rgba(0,0,0,.8);display:flex;align-items:center;gap:5px}
+.lb.t::before{content:"";width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.75);box-shadow:0 0 6px rgba(255,255,255,.6)}
+.pill{position:absolute;left:0;top:0;pointer-events:none;will-change:transform;opacity:0;transition:opacity .4s}
+.pill .in{display:flex;align-items:center;gap:8px;padding:7px 13px 7px 10px;border-radius:999px;font-size:14px;font-weight:550;white-space:nowrap;background:rgba(8,14,24,.66);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.12)}
+.pill .dot{width:8px;height:8px;border-radius:50%}
+.pill small{font-weight:400;color:var(--ink2)}
+.pill.ship .in{border-color:rgba(127,227,255,.35)} .pill.ship .dot{background:var(--sea);box-shadow:0 0 10px var(--sea)}
+.pill.port .dot{background:#fff}
+.pill.home .dot{background:var(--home);box-shadow:0 0 10px var(--home)}
+.pill.next .in{border-color:rgba(242,196,109,.35)} .pill.next .dot{background:var(--gold)}
+
+/* top bar */
+#top{position:fixed;left:0;right:0;top:0;padding:calc(14px + var(--safeT)) 16px 0;display:flex;justify-content:space-between;align-items:flex-start;pointer-events:none;z-index:5}
+#brand{pointer-events:auto}
+#brand h1{margin:0;font-family:Serif;font-weight:400;font-size:30px;letter-spacing:.01em;line-height:1}
+#brand p{margin:6px 0 0;font-size:10.5px;letter-spacing:.26em;white-space:nowrap;text-transform:uppercase;color:var(--ink3)}
+#brand p b{color:var(--sea);font-weight:600}
+#tools{display:flex;gap:8px;pointer-events:auto}
+.ib{width:60px;height:56px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:transform .2s,background .2s}
+.ib span{font-size:11px;font-weight:600;letter-spacing:.02em;color:var(--ink)}
+.ib:active{transform:scale(.92)}
+.ib svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ib.on{background:rgba(127,227,255,.18);border-color:rgba(127,227,255,.4)}
+
+/* sheet */
+#sheet{position:fixed;left:10px;right:10px;bottom:calc(10px + var(--safeB));border-radius:26px;z-index:6;padding:8px 20px 18px;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .4s;max-height:78vh;overflow:hidden;display:flex;flex-direction:column}
+#sheet .grab{align-self:center;width:38px;height:4px;border-radius:4px;background:rgba(255,255,255,.22);margin:2px 0 12px;flex:none}
+#sheetBody{overflow-y:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px}
+#sheetBody::-webkit-scrollbar{display:none}
+@media(min-width:760px){#sheet{left:20px;right:auto;bottom:20px;width:400px}}
+.chip{display:inline-flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;color:var(--sea)}
+.chip i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 0 currentColor;animation:pulse 2.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(127,227,255,.6)}70%{box-shadow:0 0 0 9px rgba(127,227,255,0)}100%{box-shadow:0 0 0 0 rgba(127,227,255,0)}}
+.ttl{font-family:Serif;font-weight:400;font-size:36px;line-height:1.02;margin:8px 0 2px;letter-spacing:-.005em}
+.sub{color:var(--ink2);font-size:15.5px}
+.count{display:flex;align-items:baseline;gap:10px;margin:16px 0 4px}
+.count .k{font-size:12px;color:var(--ink3);letter-spacing:.06em}
+.count .v{font-size:30px;font-weight:300;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.count .v b{font-weight:300;color:var(--ink3);font-size:18px;margin:0 3px 0 1px}
+.when{font-size:15px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.bar{height:2px;border-radius:2px;background:rgba(255,255,255,.08);margin:14px 0 2px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,rgba(127,227,255,.2),var(--sea));box-shadow:0 0 12px var(--sea)}
+.clocks{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.clk{padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.clk .l{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink3);display:flex;align-items:center;gap:6px}
+.clk .l svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:1.8}
+.clk .t{font-size:22px;font-weight:300;margin-top:4px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.clk .d{font-size:13px;color:var(--ink3);margin-top:1px}
+.more{max-height:0;opacity:0;transition:max-height .6s cubic-bezier(.2,.8,.2,1),opacity .4s;overflow:hidden}
+#sheet.open .more{max-height:1400px;opacity:1}
+.sec{margin-top:22px}
+.sec h3{margin:0 0 10px;font-size:9.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.note{padding:14px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(242,196,109,.1),rgba(242,196,109,.03));border:1px solid rgba(242,196,109,.2);font-family:Serif;font-size:19px;line-height:1.35}
+.note small{display:block;font-family:Inter;font-size:11px;color:var(--ink3);margin-top:8px}
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:5px;top:8px;bottom:12px;width:1px;background:linear-gradient(var(--sea),rgba(242,196,109,.5))}
+.st{position:relative;padding-bottom:16px}
+.st::before{content:"";position:absolute;left:-22px;top:4px;width:11px;height:11px;border-radius:50%;background:var(--bg);border:1.5px solid var(--sea)}
+.st.now::before{background:var(--sea);box-shadow:0 0 12px var(--sea)}
+.st.prob::before{border-color:var(--gold);border-style:dashed}
+.st .n{font-size:15px;font-weight:550}
+.st .n em{font-style:normal;font-weight:400;color:var(--ink3);font-size:13px}
+.st .m{font-size:14px;color:var(--ink2);margin-top:3px;line-height:1.5}
+.tag{display:inline-block;font-size:9px;letter-spacing:.18em;text-transform:uppercase;padding:2px 7px;border-radius:99px;border:1px solid rgba(242,196,109,.4);color:var(--gold);margin-left:6px;vertical-align:2px;font-weight:600}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:14px;font-size:13.5px;font-weight:550;background:rgba(255,255,255,.06);border:1px solid var(--line);text-decoration:none;color:var(--ink)}
+.btn:active{transform:scale(.98)}
+.btn.pri{background:var(--ink);color:#08101c;border-color:transparent}
+.btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.foot{margin-top:16px;font-size:12.5px;color:var(--ink3);text-align:center;letter-spacing:.02em}
+.expand{display:flex;justify-content:center;margin-top:12px;padding:6px 0;font-size:12.5px;color:var(--ink3);letter-spacing:.14em;text-transform:uppercase;gap:6px;align-items:center}
+.expand svg{width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;transition:transform .4s}
+#sheet.open .expand svg{transform:rotate(180deg)}
+#sheet .grab{touch-action:none;cursor:grab;padding:8px 40px;margin:-6px 0 6px;background-clip:content-box;height:20px;width:118px;border-radius:0}
+#sheet .grab::after{content:"";display:block;width:42px;height:5px;border-radius:5px;background:rgba(255,255,255,.35);margin:auto}
+#peek{display:none;align-items:center;gap:10px;padding:2px 0 4px;cursor:pointer;touch-action:none}
+#peek .pd{width:9px;height:9px;border-radius:50%;background:var(--sea);box-shadow:0 0 10px var(--sea);flex:none}
+#peek .pt{flex:1;min-width:0;font-size:16px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#peek .pt small{font-weight:400;color:var(--ink2);margin-left:6px;font-size:14px}
+#peek .pr{font-size:15px;font-variant-numeric:tabular-nums;color:var(--sea);font-weight:600;white-space:nowrap}
+#sheet.min #peek{display:flex} #sheet.min #sheetBody{display:none} #sheet.min{padding-bottom:12px}
+#tiles{position:fixed;inset:0;z-index:1;opacity:0;pointer-events:none;transition:opacity .6s;background:#dfe6ea}
+body.tiles #tiles{opacity:1;pointer-events:auto}
+body.tiles #labels{opacity:0;transition:opacity .3s}
+body.tiles #brand{background:rgba(10,16,28,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:8px 14px 9px;border-radius:16px}
+#tiles .leaflet-control-attribution{font-size:10px;background:rgba(255,255,255,.75)}
+#tiles .leaflet-top.leaflet-left{top:calc(90px + var(--safeT))}
+.lm{position:relative} .lm .pill{position:static;opacity:1;transform:translate(-50%,-140%)!important;display:inline-block}
+.shipmk{width:64px;height:64px;position:relative}
+.shipmk .rg{position:absolute;inset:0;border-radius:50%;border:2px solid #10a5d6;animation:ring 2.4s infinite;opacity:0}
+.shipmk .rg.b{animation-delay:1.2s}
+.shipmk .core{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px;border-radius:50%;background:#0aa3d8;border:3px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+@keyframes ring{0%{transform:scale(.3);opacity:.9}100%{transform:scale(1.4);opacity:0}}
+.mklab{position:absolute;left:50%;bottom:100%;transform:translateX(-50%);white-space:nowrap;background:#0b1424;color:#fff;font:600 14px Inter,system-ui;padding:6px 12px;border-radius:999px;box-shadow:0 4px 16px rgba(0,0,0,.35);margin-bottom:2px}
+.mklab small{font-weight:400;opacity:.75;margin-left:5px}
+.dotmk{width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);position:relative}
+.dotmk .mklab{margin-bottom:8px}
+
+/* toast */
+#toast{position:fixed;left:50%;top:calc(80px + var(--safeT));transform:translate(-50%,-10px);padding:10px 16px;border-radius:14px;font-size:13px;opacity:0;pointer-events:none;transition:all .35s;z-index:7;white-space:nowrap}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast b{font-weight:600} #toast span{color:var(--ink2);margin-left:8px}
+
+/* loader */
+#load{position:fixed;inset:0;background:var(--bg);display:grid;place-items:center;z-index:20;transition:opacity 1.2s}
+#load.gone{opacity:0;pointer-events:none}
+#load .w{text-align:center}
+#load h1{font-family:Serif;font-weight:400;font-size:44px;margin:0;letter-spacing:.02em}
+#load p{font-size:10px;letter-spacing:.4em;text-transform:uppercase;color:var(--ink3);margin:10px 0 22px}
+#load .pr{width:140px;height:1px;background:rgba(255,255,255,.1);margin:auto;overflow:hidden}
+#load .pr i{display:block;height:100%;width:0;background:var(--sea);transition:width .3s}
+
+/* Tara mode */
+#tara{position:fixed;left:0;right:0;bottom:0;padding:0 14px calc(16px + var(--safeB));z-index:6;display:none;flex-direction:column;gap:12px;align-items:stretch}
+body.tara #tara{display:flex}
+body.tara #sheet{opacity:0;pointer-events:none;transform:translateY(40px)}
+body.tara #brand p{display:none}
+#tcard{border-radius:28px;padding:20px 22px;text-align:center;min-height:120px;display:flex;flex-direction:column;justify-content:center}
+#tcard .flag{font-size:44px;line-height:1;margin-bottom:6px}
+#tcard .nm{font-family:Serif;font-size:42px;line-height:1.05}
+#tcard .fx{font-size:16px;color:var(--ink2);margin-top:8px;line-height:1.45}
+#tbtns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#tbtns button{height:84px;border-radius:24px;font-size:19px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+#tbtns button svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+#tbtns .s{color:var(--sea)} #tbtns .h{color:var(--home)}
+body.tara .lb.c{font-size:16px} body.tara .lb.c.big{font-size:19px}
+body.tara .lb.t, body.tara .lb.s{display:none}
+.pop{animation:pop .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes pop{from{transform:scale(.9);opacity:.3}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div id="tiles"></div>
+<div id="labels"></div>
+
+<div id="top">
+  <div id="brand"><h1>Meridian</h1><p><b>●</b>&nbsp; Live voyage</p></div>
+  <div id="tools">
+    <button class="ib glass" id="bView" title="Globe / Map"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 3 2.8 15 0 18M12 3c-2.8 3-2.8 15 0 18"/></svg><span id="bViewL">Flat map</span></button>
+    <button class="ib glass" id="bTara" title="Tara mode"><svg viewBox="0 0 24 24"><path d="M12 3l2.4 5.2 5.6.6-4.2 3.8 1.2 5.6L12 15.4 7 18.2l1.2-5.6L4 8.8l5.6-.6z"/></svg><span>Tara</span></button>
+    <button class="ib glass" id="bFs" title="Full screen"><svg viewBox="0 0 24 24" id="fsIco"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span>Full screen</span></button>
+  </div>
+</div>
+
+<div id="sheet" class="glass">
+  <div class="grab" title="Slide down to hide"></div>
+  <div id="peek"></div>
+  <div id="sheetBody"></div>
+</div>
+
+<div id="tara">
+  <div id="tcard" class="glass"></div>
+  <div id="tbtns">
+    <button class="glass s" id="tShip"><svg viewBox="0 0 24 24"><path d="M3 15l2 5h14l2-5zM6 15V9h9l3 6M9 9V5h4v4"/></svg>Our ship</button>
+    <button class="glass h" id="tHome"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9H4zM10 20v-6h4v6"/></svg>Home</button>
+  </div>
+</div>
+
+<div id="toast" class="glass"></div>
+<div id="load"><div class="w"><h1>Meridian</h1><p>Finding our ship</p><div class="pr"><i id="lp"></i></div></div></div>
+
+<script src="assets/leaflet.js"></script>
+<script>
+setTimeout(function(){var l=document.getElementById('load');if(l&&!l.classList.contains('gone')){var p=l.querySelector('p');p.style.letterSpacing='.05em';p.style.textTransform='none';p.style.fontSize='14px';p.style.lineHeight='1.5';p.style.maxWidth='300px';p.style.margin='14px auto 22px';p.style.color='rgba(226,236,248,.7)';p.textContent=location.protocol==='https:'?'Still loading... please check your internet connection and try again.':'Meridian needs to be opened from its web link. It cannot run as a file opened on the phone.';}},12000);
+</script>
+<script type="module">
+import * as THREE from './assets/three.min.js';
+
+/* ============ data ============ */
+const D2R=Math.PI/180;
+const NAMEFIX={"United States of America":"United States","Dem. Rep. Congo":"DR Congo","Central African Rep.":"Central African Rep.","Bosnia and Herz.":"Bosnia","Dominican Rep.":"Dominican Rep.","S. Sudan":"South Sudan","Eq. Guinea":"Eq. Guinea","W. Sahara":"Western Sahara","Solomon Is.":"Solomon Islands","Falkland Is.":"Falkland Islands","Fr. S. Antarctic Lands":"French Southern Lands","Fr. Polynesia":"French Polynesia","Marshall Is.":"Marshall Islands","N. Mariana Is.":"N. Mariana Islands","Br. Indian Ocean Ter.":"Chagos Islands","eSwatini":"Eswatini","Macedonia":"North Macedonia","Faeroe Is.":"Faroe Islands","Cook Is.":"Cook Islands","Turks and Caicos Is.":"Turks & Caicos","Cayman Is.":"Cayman Islands","British Virgin Is.":"BVI","U.S. Virgin Is.":"USVI","Antigua and Barb.":"Antigua","St. Vin. and Gren.":"St Vincent","St. Kitts and Nevis":"St Kitts","S. Geo. and the Is.":"South Georgia","Heard I. and McDonald Is.":"Heard Island","Wallis and Futuna Is.":"Wallis & Futuna","St. Pierre and Miquelon":"St Pierre","Pitcairn Is.":"Pitcairn","Indian Ocean Ter.":"Christmas Island","Ashmore and Cartier Is.":"Ashmore Reef","São Tomé and Principe":"São Tomé","Trinidad and Tobago":"Trinidad & Tobago"};
+const SKIP=new Set(["Siachen Glacier","Ashmore and Cartier Is.","Indian Ocean Ter.","Heard I. and McDonald Is.","N. Cyprus","Somaliland"]);
+const LABEL_AT={"Malaysia":[102.2,4.2],"Indonesia":[113.6,-1.2],"United States of America":[-99,39.5],"Norway":[9.5,61.5],"Chile":[-71,-33],"France":[2.4,46.6],"Russia":[96,62],"Canada":[-102,58]};
+const CITIES=[
+// name, lat, lon, tier (1 world, 2 major port/regional, 3 local)
+["Singapore",1.29,103.85,1],["Kuala Lumpur",3.14,101.69,1],["Jakarta",-6.2,106.85,1],["Bangkok",13.75,100.5,1],["Manila",14.6,120.98,1],["Ho Chi Minh City",10.82,106.63,1],["Hanoi",21.03,105.85,2],["Hong Kong",22.3,114.17,1],["Shanghai",31.23,121.47,1],["Beijing",39.9,116.4,1],["Tokyo",35.68,139.76,1],["Seoul",37.57,126.98,1],["Busan",35.1,129.04,2],["Taipei",25.03,121.56,2],["Kaohsiung",22.62,120.3,3],["Guangzhou",23.13,113.26,2],["Ningbo",29.87,121.55,3],["Qingdao",36.07,120.38,3],["Tianjin",39.13,117.2,3],["Yokohama",35.44,139.64,3],["Osaka",34.69,135.5,2],
+["Chennai",13.08,80.27,1],["Madurai",9.93,78.12,2],["Coimbatore",11.02,76.96,3],["Thoothukudi",8.76,78.13,3],["Tiruchirappalli",10.8,78.69,3],["Kochi",9.93,76.27,2],["Bengaluru",12.97,77.59,1],["Hyderabad",17.39,78.49,2],["Mumbai",19.08,72.88,1],["Delhi",28.61,77.21,1],["Kolkata",22.57,88.36,1],["Visakhapatnam",17.69,83.22,3],["Puducherry",11.94,79.83,3],["Colombo",6.93,79.85,1],["Malé",4.18,73.51,2],["Dhaka",23.81,90.41,1],["Chittagong",22.36,91.78,3],["Yangon",16.84,96.17,2],["Karachi",24.86,67.0,1],["Kathmandu",27.72,85.32,2],
+["Port Klang",3.0,101.39,2],["Penang",5.41,100.33,2],["Johor Bahru",1.49,103.74,2],["Melaka",2.19,102.25,3],["Port Dickson",2.52,101.8,3],["Kuantan",3.82,103.33,3],["Kerteh",4.51,103.44,3],["Kota Kinabalu",5.98,116.07,3],["Kuching",1.55,110.34,3],["Bintulu",3.17,113.04,3],["Bandar Seri Begawan",4.9,114.94,3],["Batam",1.08,104.03,3],["Dumai",1.67,101.45,3],["Palembang",-2.98,104.76,3],["Surabaya",-7.25,112.75,2],["Semarang",-6.97,110.42,3],["Balikpapan",-1.27,116.83,3],["Makassar",-5.15,119.43,3],["Medan",3.59,98.67,3],["Merak",-5.93,106.0,3],["Denpasar",-8.65,115.22,3],["Phnom Penh",11.56,104.92,2],["Laem Chabang",13.08,100.88,3],["Map Ta Phut",12.67,101.15,3],["Songkhla",7.2,100.6,3],["Vung Tau",10.35,107.08,3],["Da Nang",16.05,108.2,3],["Cebu",10.31,123.89,3],["Davao",7.19,125.46,3],["Dili",-8.56,125.57,3],
+["Dubai",25.2,55.27,1],["Abu Dhabi",24.45,54.38,2],["Fujairah",25.12,56.33,3],["Muscat",23.59,58.41,2],["Doha",25.29,51.53,2],["Ras Tanura",26.64,50.16,3],["Riyadh",24.71,46.68,2],["Jeddah",21.49,39.19,2],["Kuwait City",29.38,47.99,2],["Tehran",35.69,51.39,1],["Basra",30.51,47.81,3],["Aden",12.79,45.03,3],["Djibouti",11.59,43.15,3],["Suez",29.97,32.55,3],["Port Said",31.26,32.3,3],["Cairo",30.04,31.24,1],["Istanbul",41.01,28.98,1],["Athens",37.98,23.73,2],["Mombasa",-4.04,39.67,2],["Nairobi",-1.29,36.82,2],["Dar es Salaam",-6.79,39.21,2],["Durban",-29.86,31.02,2],["Cape Town",-33.92,18.42,1],["Lagos",6.52,3.38,1],["Port Louis",-20.16,57.5,3],
+["London",51.51,-0.13,1],["Paris",48.86,2.35,1],["Rotterdam",51.92,4.48,2],["Antwerp",51.22,4.4,3],["Hamburg",53.55,9.99,2],["Gibraltar",36.14,-5.35,3],["Barcelona",41.39,2.17,2],["Rome",41.9,12.5,1],["Marseille",43.3,5.37,3],["Lisbon",38.72,-9.14,2],["Moscow",55.76,37.62,1],["Oslo",59.91,10.75,2],
+["New York",40.71,-74.0,1],["Houston",29.76,-95.37,2],["Los Angeles",34.05,-118.24,1],["San Francisco",37.77,-122.42,2],["Vancouver",49.28,-123.12,2],["Panama City",8.98,-79.52,2],["Santos",-23.96,-46.33,3],["Rio de Janeiro",-22.91,-43.17,1],["Buenos Aires",-34.6,-58.38,1],["Lima",-12.05,-77.04,2],["Mexico City",19.43,-99.13,1],
+["Sydney",-33.87,151.21,1],["Melbourne",-37.81,144.96,1],["Perth",-31.95,115.86,2],["Darwin",-12.46,130.84,2],["Brisbane",-27.47,153.03,2],["Port Hedland",-20.31,118.6,3],["Auckland",-36.85,174.76,2],["Port Moresby",-9.44,147.18,3]
+];
+const SEAS=[
+["Indian Ocean",-15,78,1],["Pacific Ocean",5,-150,1],["Pacific Ocean",20,155,1],["Atlantic Ocean",25,-40,1],["Atlantic Ocean",-22,-18,1],["Southern Ocean",-60,60,1],["Arctic Ocean",82,0,1],
+["South China Sea",13,114,2],["Bay of Bengal",14.5,88,2],["Arabian Sea",15,63,2],["Andaman Sea",10,96.2,2],["Java Sea",-5.2,111,2],["Philippine Sea",18,132,2],["Coral Sea",-17,155,2],["Tasman Sea",-38,160,2],["Red Sea",20.5,38.5,2],["Mediterranean Sea",35,18,2],["Persian Gulf",27,51.5,3],["Gulf of Thailand",9.5,101.5,3],["East China Sea",29,125,2],["Sea of Japan",40,135,2],["Timor Sea",-11,127,3],["Celebes Sea",3.5,122,3],["Sulu Sea",8.5,120,3],["Banda Sea",-5.5,127,3],["Laccadive Sea",8,75.5,3],["Gulf of Aden",12.5,48,3],["Caribbean Sea",15,-75,2],["Gulf of Mexico",25,-90,2],["North Sea",56,3,2],
+["Strait of Malacca",3.6,99.7,3],["Singapore Strait",1.18,104.0,4],["Karimata Strait",-1.6,108.6,4],["Lombok Strait",-8.6,115.75,4],["Sunda Strait",-6,105.6,4],["Palk Strait",10,79.6,4]
+];
+const FACTS={
+"Malaysia":["🇲🇾","Our ship is visiting Malaysia! It has the famous Petronas Twin Towers, among the tallest twin towers in the world."],
+"Indonesia":["🇮🇩","Indonesia is made of more than seventeen thousand islands! Orangutans live in its forests."],
+"Singapore":["🇸🇬","Singapore is a tiny island country, and one of the busiest ports in the whole world."],
+"India":["🇮🇳","India is home! Tigers, elephants and peacocks live in India."],
+"Thailand":["🇹🇭","In Thailand, people say Sawasdee to say hello. Elephants are very special there."],
+"Sri Lanka":["🇱🇰","Sri Lanka is an island shaped like a drop of water. It grows lots and lots of tea."],
+"China":["🇨🇳","China has the Great Wall, and giant pandas live there."],
+"Japan":["🇯🇵","Japan has a beautiful mountain called Mount Fuji. People say Konnichiwa to say hello."],
+"Australia":["🇦🇺","Kangaroos and koalas live in Australia."],
+"Vietnam":["🇻🇳","Vietnam has green rice fields and a bay full of rocky islands."],
+"Philippines":["🇵🇭","The Philippines has more than seven thousand islands and lovely beaches."],
+"South Korea":["🇰🇷","In South Korea, people say Annyeonghaseyo to say hello."],
+"United Arab Emirates":["🇦🇪","Dubai has the tallest building in the world, the Burj Khalifa."],
+"Saudi Arabia":["🇸🇦","Saudi Arabia has huge sandy deserts, and camels live there."],
+"Oman":["🇴🇲","Oman has deserts, mountains and long beaches where sea turtles lay eggs."],
+"Egypt":["🇪🇬","Egypt has the great pyramids, built thousands of years ago."],
+"Kenya":["🇰🇪","Lions, giraffes and zebras live in Kenya."],
+"South Africa":["🇿🇦","South Africa has penguins that live on a sunny beach!"],
+"United Kingdom":["🇬🇧","The United Kingdom has a famous big clock tower called Big Ben."],
+"France":["🇫🇷","France has the Eiffel Tower, a tall tower made of iron."],
+"Italy":["🇮🇹","Italy is shaped like a boot. Pizza comes from Italy!"],
+"Netherlands":["🇳🇱","The Netherlands has windmills and fields full of tulips."],
+"United States of America":["🇺🇸","The United States has the Statue of Liberty, holding up a torch."],
+"Brazil":["🇧🇷","Brazil has the Amazon, the biggest rainforest in the world."],
+"Russia":["🇷🇺","Russia is the biggest country in the world."],
+"Canada":["🇨🇦","Canada has moose, bears and a red maple leaf on its flag."],
+"Myanmar":["🇲🇲","Myanmar has thousands of old golden temples."],
+"Bangladesh":["🇧🇩","Bangladesh has the Sundarbans forest, where tigers swim!"],
+"Pakistan":["🇵🇰","Pakistan has some of the tallest mountains in the world."],
+"Nepal":["🇳🇵","Nepal has Mount Everest, the tallest mountain on Earth."],
+"Maldives":["🇲🇻","The Maldives are tiny islands in the blue sea, with lots of colourful fish."],
+"Antarctica":["🇦🇶","Antarctica is covered in ice. Penguins live there!"],
+"Greenland":["🇬🇱","Greenland is the biggest island in the world, and mostly ice."],
+"New Zealand":["🇳🇿","New Zealand has a little bird called the kiwi that cannot fly."],
+"Cambodia":["🇰🇭","Cambodia has Angkor Wat, a giant old temple."],
+"Brunei":["🇧🇳","Brunei is a small country on the big island of Borneo."],
+"Papua New Guinea":["🇵🇬","Papua New Guinea has colourful birds of paradise."],
+"Mexico":["🇲🇽","Mexico has old pyramids and colourful festivals."],
+"Germany":["🇩🇪","Germany has fairy-tale castles and big forests."],
+"Spain":["🇪🇸","In Spain, people say Hola to say hello."],
+"Turkey":["🇹🇷","Turkey has hot air balloons floating over rocky valleys."],
+"Iran":["🇮🇷","Iran has beautiful blue mosques and big mountains."],
+"Qatar":["🇶🇦","Qatar is a small desert country by the sea."],
+"Kuwait":["🇰🇼","Kuwait has tall towers by the sea."],
+"Madagascar":["🇲🇬","Lemurs with long stripy tails live in Madagascar."],
+"Mauritius":["🇲🇺","Mauritius is a little island with white beaches."]
+};
+
+/* ============ helpers ============ */
+const $=s=>document.querySelector(s);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const wrap=x=>{while(x>Math.PI)x-=2*Math.PI;while(x<-Math.PI)x+=2*Math.PI;return x};
+function sph(lon,lat,r=1){const c=Math.cos(lat);return new THREE.Vector3(c*Math.sin(lon)*r,Math.sin(lat)*r,c*Math.cos(lon)*r)}
+let MORPH=0;
+function place(lon,lat,h=0,m=MORPH){const s=sph(lon,lat,1+h);const f=new THREE.Vector3(lon,lat,h);return s.lerp(f,m)}
+function sunLL(date){ // subsolar point (radians)
+  const d=date.getTime()/864e5+2440587.5-2451545.0;
+  const g=(357.529+0.98560028*d)*D2R, q=280.459+0.98564736*d;
+  const L=(q+1.915*Math.sin(g)+0.020*Math.sin(2*g))*D2R, e=(23.439-0.00000036*d)*D2R;
+  const ra=Math.atan2(Math.cos(e)*Math.sin(L),Math.cos(L)), dec=Math.asin(Math.sin(e)*Math.sin(L));
+  const gmst=(18.697374558+24.06570982441908*d)%24;
+  return [wrap(ra-gmst*15*D2R),dec];
+}
+
+/* ============ renderer ============ */
+const canvas=$('#gl');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(38,1,0.001,200);
+const PX=renderer.getPixelRatio();
+
+const GLSL_PLACE=`
+uniform float uMorph;
+vec3 sph(vec2 ll){return vec3(cos(ll.y)*sin(ll.x),sin(ll.y),cos(ll.y)*cos(ll.x));}
+vec3 place(vec2 ll,float h){return mix(sph(ll)*(1.0+h),vec3(ll,h),uMorph);}
+`;
+const U={uMorph:{value:0},uTime:{value:0},uSun:{value:new THREE.Vector3(1,0,0)}};
+
+/* loading */
+let loaded=0;const TOTAL=6;const bump=()=>{loaded++;$('#lp').style.width=(loaded/TOTAL*100)+'%'};
+const tl=new THREE.TextureLoader();
+const tex=u=>new Promise(r=>tl.load(u,t=>{t.anisotropy=renderer.capabilities.getMaxAnisotropy();bump();r(t)},undefined,()=>{bump();r(null)}));
+const json=u=>fetch(u).then(r=>r.json()).then(j=>{bump();return j});
+
+const VF=(new URLSearchParams(location.search).get('v')||'voyage').replace(/[^\w-]/g,'')+'.json';
+const [tDay,tNight,tWater,tSky,world,voyage]=await Promise.all([
+  tex('assets/earth-blue-marble.jpg'),tex('assets/earth-night.jpg'),tex('assets/earth-water.png'),tex('assets/night-sky.png'),
+  json('assets/world.json'), fetch(VF+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(j=>{bump();return j})
+]);
+const countriesP=fetch('assets/countries.json').then(r=>r.json());
+
+/* ============ earth ============ */
+const earthGeo=new THREE.PlaneGeometry(2,1,360,180);
+const earthMat=new THREE.ShaderMaterial({
+  uniforms:{...U,uDay:{value:tDay},uNight:{value:tNight},uWater:{value:tWater}},
+  vertexShader:GLSL_PLACE+`
+  varying vec2 vUv;varying vec3 vN;varying vec3 vW;
+  void main(){vUv=uv;vec2 ll=vec2((uv.x*2.0-1.0)*3.14159265,(uv.y-0.5)*3.14159265);
+    vN=sph(ll);vec3 p=place(ll,0.0);vW=p;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}`,
+  fragmentShader:`
+  uniform sampler2D uDay,uNight,uWater;uniform vec3 uSun;uniform float uMorph;
+  varying vec2 vUv;varying vec3 vN;varying vec3 vW;
+  void main(){
+    vec3 n=normalize(vN);float d=dot(n,uSun);
+    float day=smoothstep(-0.10,0.22,d);
+    vec3 dc=texture2D(uDay,vUv).rgb;
+    float l=dot(dc,vec3(.299,.587,.114));dc=mix(vec3(l),dc,1.18);dc=pow(dc,vec3(1.08))*1.08;
+    vec3 nc=texture2D(uNight,vUv).rgb;
+    float w=texture2D(uWater,vUv).r;
+    vec3 V=normalize(cameraPosition-vW);
+    vec3 col=dc*mix(0.46,1.14,day)*(0.94+0.2*max(d,0.0));
+    col=mix(col,col*vec3(0.8,0.9,1.12),(1.0-day)*0.5);
+    col+=vec3(1.0,0.82,0.52)*pow(nc,vec3(1.6))*1.3*(1.0-day);
+    float tw=exp(-pow((d-0.02)*7.0,2.0));col+=vec3(1.0,0.5,0.25)*0.06*tw;
+    vec3 Hh=normalize(uSun+V);float sp=pow(max(dot(n,Hh),0.0),70.0)*w*(1.0-uMorph);
+    col+=vec3(1.0,0.93,0.82)*sp*0.55*day;
+    col+=vec3(0.04,0.08,0.14)*w*day*(1.0-uMorph)*pow(1.0-max(dot(n,V),0.0),2.0);
+    float fr=pow(1.0-max(dot(n,V),0.0),3.0)*(1.0-uMorph);
+    col=mix(col,vec3(0.36,0.62,1.0)*(0.15+0.9*day),fr*0.6);
+    gl_FragColor=vec4(col,1.0);
+  }`
+});
+const earth=new THREE.Mesh(earthGeo,earthMat);earth.frustumCulled=false;scene.add(earth);
+
+/* atmosphere */
+const atmMat=new THREE.ShaderMaterial({
+  uniforms:{...U,uFade:{value:1}},side:THREE.BackSide,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  vertexShader:`varying vec3 vN;varying vec3 vWN;void main(){vN=normalize(normalMatrix*normal);vWN=normalize(position);gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}`,
+  fragmentShader:`uniform vec3 uSun;uniform float uFade;varying vec3 vN;varying vec3 vWN;
+  void main(){float i=pow(clamp(0.72-dot(vN,vec3(0,0,1.0)),0.0,1.0),3.2);float s=0.25+0.95*smoothstep(-0.35,0.5,dot(vWN,uSun));
+  gl_FragColor=vec4(vec3(0.3,0.58,1.0)*i*s*1.6,1.0)*uFade;}`
+});
+const atm=new THREE.Mesh(new THREE.SphereGeometry(1.14,96,64),atmMat);scene.add(atm);
+
+/* stars */
+if(tSky){tSky.colorSpace=THREE.SRGBColorSpace;const sky=new THREE.Mesh(new THREE.SphereGeometry(90,48,32),new THREE.MeshBasicMaterial({map:tSky,side:THREE.BackSide,color:0x6a7486,depthWrite:false}));scene.add(sky);window._sky=sky}
+
+/* ============ lines (borders/coast/outlines) ============ */
+function lineMat(color,alpha,h,dash=0){
+  return new THREE.ShaderMaterial({uniforms:{...U,uCol:{value:new THREE.Color(color)},uA:{value:alpha},uH:{value:h},uDash:{value:dash}},
+  transparent:true,depthWrite:false,
+  vertexShader:GLSL_PLACE+`attribute vec2 ll;attribute float u;uniform float uH;varying float vF;varying float vU;
+   void main(){vec3 p=place(ll,uH);vec3 n=sph(ll);vU=u;vF=mix(dot(n,normalize(cameraPosition-p)),1.0,uMorph);gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}`,
+  fragmentShader:`uniform vec3 uCol;uniform float uA;uniform float uDash;uniform float uTime;varying float vF;varying float vU;
+   void main(){float a=uA*smoothstep(-0.02,0.25,vF);if(uDash>0.0){float k=fract(vU*uDash-uTime*0.35);a*=smoothstep(0.0,0.1,k)*smoothstep(0.65,0.45,k)*0.9+0.1;}gl_FragColor=vec4(uCol,a);}`});
+}
+function buildLines(rings,mat,closed=false){
+  const ll=[],u=[];
+  for(const r of rings){let acc=0;const n=r.length/2;
+    for(let i=0;i<n-1+(closed?1:0);i++){const j=(i+1)%n;const a=[r[2*i]*D2R,r[2*i+1]*D2R],b=[r[2*j]*D2R,r[2*j+1]*D2R];
+      if(Math.abs(a[0]-b[0])>Math.PI)continue;const seg=Math.hypot(a[0]-b[0],a[1]-b[1]);
+      ll.push(...a,...b);u.push(acc,acc+seg);acc+=seg;}}
+  const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(ll.length/2*3),3));
+  g.setAttribute('ll',new THREE.Float32BufferAttribute(ll,2));g.setAttribute('u',new THREE.Float32BufferAttribute(u,1));
+  const m=new THREE.LineSegments(g,mat);m.frustumCulled=false;return m;
+}
+scene.add(buildLines(world.coast,lineMat(0xbfe6ff,0.32,0.0006)));
+scene.add(buildLines(world.borders,lineMat(0xffffff,0.55,0.0008)));
+
+/* graticule (very faint) */
+{const rings=[];for(let la=-60;la<=60;la+=30){const r=[];for(let lo=-180;lo<=180;lo+=2)r.push(lo,la);rings.push(r)}
+ for(let lo=-180;lo<180;lo+=30){const r=[];for(let la=-80;la<=80;la+=2)r.push(lo,la);rings.push(r)}
+ scene.add(buildLines(rings,lineMat(0x9fd8ff,0.045,0.0004)));}
+
+/* ============ voyage logic ============ */
+const V=voyage, stops=V.stops, home=V.home;
+const shipRef=()=>state.mode==='sea'?(state.f<0.5?state.from:state.next):state.mode==='departed'?state.from:(state.stop||state.next);
+const tzShip=()=>{const st=shipRef();return (st&&st.tz)||'UTC'};
+function fmt(d,tz,o){return new Intl.DateTimeFormat('en-GB',{timeZone:tz,...o}).format(d)}
+const fTime=(d,tz)=>fmt(d,tz,{hour:'numeric',minute:'2-digit',hour12:true}).replace(' ',' ').toUpperCase();
+const fDay=(d,tz)=>fmt(d,tz,{weekday:'short',day:'numeric',month:'short'});
+function dur(ms){ms=Math.max(0,ms);const m=Math.round(ms/6e4),d=Math.floor(m/1440),h=Math.floor(m%1440/60),mi=m%60;
+  return d?`${d}<b>d</b>${h}<b>h</b>`:h?`${h}<b>h</b>${String(mi).padStart(2,'0')}<b>m</b>`:`${mi}<b>m</b>`}
+function dayWord(d,tz,now){const a=fmt(d,tz,{year:'numeric',month:'2-digit',day:'2-digit'}),b=fmt(now,tz,{year:'numeric',month:'2-digit',day:'2-digit'});
+  const diff=Math.round((Date.parse(a.split('/').reverse().join('-'))-Date.parse(b.split('/').reverse().join('-')))/864e5);
+  const hr=+fmt(d,tz,{hour:'numeric',hour12:false});
+  if(diff===0)return hr>=18?'tonight':hr>=12?'this afternoon':'today'; if(diff===1)return hr>=18?'tomorrow night':'tomorrow'; return fDay(d,tz)}
+
+// legs: path [[lon,lat],...] deg
+function legFor(a,b){return (V.legs||[]).find(l=>l.from===a&&l.to===b)}
+function pathLen(p){let s=0;for(let i=1;i<p.length;i++)s+=gc(p[i-1],p[i]);return s}
+function gc(a,b){const A=sph(a[0]*D2R,a[1]*D2R),B=sph(b[0]*D2R,b[1]*D2R);return A.angleTo(B)}
+function along(p,f){const L=pathLen(p)*f;let s=0;for(let i=1;i<p.length;i++){const g=gc(p[i-1],p[i]);if(s+g>=L){const t=g?(L-s)/g:0;
+  const A=sph(p[i-1][0]*D2R,p[i-1][1]*D2R),B=sph(p[i][0]*D2R,p[i][1]*D2R);const q=A.clone().lerp(B,t).normalize();
+  const nxt=sph(p[i][0]*D2R,p[i][1]*D2R);return {lon:Math.atan2(q.x,q.z),lat:Math.asin(q.y),toward:[Math.atan2(nxt.x,nxt.z),Math.asin(nxt.y)]}}s+=g}
+  const e=p[p.length-1];return {lon:e[0]*D2R,lat:e[1]*D2R}}
+
+const state={};
+function compute(now){
+  const t=now.getTime();Object.keys(state).forEach(k=>delete state[k]);
+  for(let i=0;i<stops.length;i++){
+    const s=stops[i],arr=s.arrive?Date.parse(s.arrive):null,dep=s.depart?Date.parse(s.depart):null,prev=stops[i-1];
+    const prevDep=prev&&prev.depart?Date.parse(prev.depart):null;
+    if(arr&&t<arr){ // heading to s
+      const leg=prev&&legFor(prev.id,s.id);
+      if(prev&&prevDep&&t>=prevDep&&leg){const f=clamp((t-prevDep)/(arr-prevDep),0,1);const pos=along(leg.path,f);
+        Object.assign(state,{mode:'sea',stop:null,from:prev,next:s,f,pos,leg,eta:arr});}
+      else if(prev&&prevDep&&t<prevDep){continue}
+      else Object.assign(state,{mode:'inbound',stop:s,next:s,from:prev||null,pos:{lon:s.lon*D2R,lat:s.lat*D2R},eta:arr,f:0.97});
+      break;
+    }
+    if(arr&&t>=arr&&(!dep||t<dep)){Object.assign(state,{mode:'port',stop:s,next:stops[i+1]||null,pos:{lon:s.lon*D2R,lat:s.lat*D2R},since:arr,etd:dep});break;}
+    if(dep&&t>=dep){const n=stops[i+1];
+      if(!n)  {Object.assign(state,{mode:'port',stop:s,pos:{lon:s.lon*D2R,lat:s.lat*D2R}});break;}
+      if(!n.arrive||n.lat==null){Object.assign(state,{mode:'departed',stop:null,from:s,next:n,pos:{lon:s.lon*D2R,lat:s.lat*D2R},since:dep});break;}
+      continue;
+    }
+  }
+  if(!state.mode&&stops[0]){const s=stops[0];Object.assign(state,{mode:'port',stop:s,pos:{lon:s.lon*D2R,lat:s.lat*D2R}})}
+  state.cur=state.stop||state.from||state.next;
+}
+compute(new Date());
+
+/* ============ route points ============ */
+const routeMat=new THREE.ShaderMaterial({uniforms:{...U,uPx:{value:PX}},transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
+  vertexShader:GLSL_PLACE+`attribute vec2 ll;attribute float u;attribute float st;uniform float uPx;uniform float uTime;varying float vSt;varying float vU;varying float vF;
+  void main(){vec3 p=place(ll,0.0015);vSt=st;vU=u;vec3 n=sph(ll);vF=mix(dot(n,normalize(cameraPosition-p)),1.0,uMorph);
+   vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;gl_PointSize=(st<0.5?3.0:2.6)*uPx;}`,
+  fragmentShader:`uniform float uTime;varying float vSt;varying float vU;varying float vF;
+  void main(){vec2 c=gl_PointCoord-0.5;float r=length(c);float a=smoothstep(0.5,0.15,r)*smoothstep(-0.02,0.2,vF);
+   vec3 col;if(vSt<0.5){float f=0.55+0.45*sin(vU*60.0-uTime*3.0);col=vec3(0.5,0.9,1.0)*(0.7+f*0.6);}
+   else if(vSt<1.5){col=vec3(0.85,0.95,1.0)*0.75;}else{col=vec3(0.95,0.77,0.43)*0.85;}
+   gl_FragColor=vec4(col,a);}`});
+let routePts=null;
+function buildRoute(){
+  if(routePts){scene.remove(routePts);routePts.geometry.dispose()}
+  const ll=[],u=[],st=[];
+  for(let i=1;i<stops.length;i++){const leg=legFor(stops[i-1].id,stops[i].id);if(!leg)continue;
+    const p=leg.path,L=pathLen(p),spacingDone=0.0007,spacingFut=0.005;
+    const isCur=state.leg===leg;const prog=isCur?state.f:(state.mode==='sea'||state.mode==='port'||state.mode==='inbound')&&Date.now()>Date.parse(stops[i].arrive||0)?1:0;
+    let s=0;while(s<=L){const f=s/L;const q=along(p,f);const done=f<=prog;
+      ll.push(q.lon,q.lat);u.push(s);st.push(done?0:(stops[i].probable?2:1));
+      s+=done?spacingDone:spacingFut;}
+  }
+  if(!ll.length)return;const g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(ll.length/2*3),3));
+  g.setAttribute('ll',new THREE.Float32BufferAttribute(ll,2));g.setAttribute('u',new THREE.Float32BufferAttribute(u,1));g.setAttribute('st',new THREE.Float32BufferAttribute(st,1));
+  routePts=new THREE.Points(g,routeMat);routePts.frustumCulled=false;scene.add(routePts);
+}
+buildRoute();
+
+/* next-country outline (when port unknown) */
+let countries=null;
+countriesP.then(c=>{countries=c});
+fetch('assets/highlight.json').then(r=>r.json()).then(h=>{if(stops.some(s=>s.lat==null&&s.country===h.country))scene.add(buildLines(h.rings,lineMat(0xf2c46d,0.95,0.0012,55),true))}).catch(()=>{});
+
+/* ============ markers ============ */
+function glowTex(inner='rgba(255,255,255,1)',outer='rgba(127,227,255,0)'){const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');
+  const gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,inner);gr.addColorStop(.18,inner.replace(/[\d.]+\)$/,'.85)'));gr.addColorStop(.45,'rgba(127,227,255,.22)');gr.addColorStop(1,outer);
+  g.fillStyle=gr;g.fillRect(0,0,128,128);const t=new THREE.CanvasTexture(c);return t}
+function ringTex(){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.strokeStyle='#fff';g.lineWidth=6;g.beginPath();g.arc(128,128,120,0,7);g.stroke();return new THREE.CanvasTexture(c)}
+const RT=ringTex();
+
+// ship model (local: +x bow, +y up, +z starboard). length ~1
+function makeShip(){
+  const grp=new THREE.Group();
+  const hullS=new THREE.Shape();hullS.moveTo(-0.5,-0.08);hullS.lineTo(0.3,-0.08);hullS.quadraticCurveTo(0.5,-0.06,0.52,0);hullS.quadraticCurveTo(0.5,0.06,0.3,0.08);hullS.lineTo(-0.5,0.08);hullS.quadraticCurveTo(-0.53,0,-0.5,-0.08);
+  const hg=new THREE.ExtrudeGeometry(hullS,{depth:0.07,bevelEnabled:false});hg.rotateX(-Math.PI/2);
+  const hull=new THREE.Mesh(hg,new THREE.MeshStandardMaterial({color:0x22262d,roughness:.6,metalness:.2}));grp.add(hull);
+  const deckS=new THREE.Shape();deckS.moveTo(-0.48,-0.07);deckS.lineTo(0.3,-0.07);deckS.quadraticCurveTo(0.47,-0.05,0.49,0);deckS.quadraticCurveTo(0.47,0.05,0.3,0.07);deckS.lineTo(-0.48,0.07);
+  const dg=new THREE.ShapeGeometry(deckS);dg.rotateX(-Math.PI/2);dg.translate(0,0.0705,0);
+  grp.add(new THREE.Mesh(dg,new THREE.MeshStandardMaterial({color:0x8a3b2e,roughness:.8})));
+  const pipe=new THREE.Mesh(new THREE.BoxGeometry(0.7,0.012,0.02),new THREE.MeshStandardMaterial({color:0xd8d2c4,roughness:.5}));pipe.position.set(0.0,0.078,0);grp.add(pipe);
+  const sup=new THREE.Mesh(new THREE.BoxGeometry(0.12,0.12,0.14),new THREE.MeshStandardMaterial({color:0xf3f1ec,roughness:.5}));sup.position.set(-0.4,0.13,0);grp.add(sup);
+  const bri=new THREE.Mesh(new THREE.BoxGeometry(0.05,0.02,0.17),new THREE.MeshStandardMaterial({color:0xf3f1ec}));bri.position.set(-0.36,0.18,0);grp.add(bri);
+  const fun=new THREE.Mesh(new THREE.BoxGeometry(0.04,0.06,0.05),new THREE.MeshStandardMaterial({color:0x1d3557}));fun.position.set(-0.47,0.2,0);grp.add(fun);
+  const win=new THREE.Mesh(new THREE.BoxGeometry(0.005,0.012,0.12),new THREE.MeshBasicMaterial({color:0xffe2a8}));win.position.set(-0.338,0.165,0);grp.add(win);
+  return grp;
+}
+const ship=new THREE.Group();const shipModel=makeShip();ship.add(shipModel);scene.add(ship);
+const beacon=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex(),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));scene.add(beacon);
+const pulse=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({map:RT,color:0x7fe3ff,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,side:THREE.DoubleSide}));scene.add(pulse);
+const pulse2=pulse.clone();pulse2.material=pulse.material.clone();scene.add(pulse2);
+scene.add(new THREE.AmbientLight(0xffffff,0.9));const sunL=new THREE.DirectionalLight(0xffffff,2.2);scene.add(sunL);
+
+const homeDot=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex('rgba(255,190,130,1)','rgba(255,178,122,0)'),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));scene.add(homeDot);
+const portDots=stops.filter(s=>s.lat!=null).map(s=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex('rgba(255,255,255,1)','rgba(255,255,255,0)'),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));scene.add(sp);return {s,sp}});
+
+function frameAt(lon,lat,h){ // returns pos, up, east, north under current morph
+  const p=place(lon,lat,h),e=place(lon+1e-4,lat,h).sub(p).normalize(),n=place(lon,lat+1e-4,h).sub(p).normalize();
+  const up=new THREE.Vector3().crossVectors(e,n).normalize();return {p,up,e,n}}
+function orientOnSurface(obj,lon,lat,h,heading){ // heading rad from north clockwise
+  const {p,up,e,n}=frameAt(lon,lat,h);obj.position.copy(p);
+  const fwd=n.clone().multiplyScalar(Math.cos(heading)).add(e.clone().multiplyScalar(Math.sin(heading))).normalize();
+  const side=new THREE.Vector3().crossVectors(fwd,up).normalize();
+  obj.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(fwd,up,side));return p}
+function headingTo(a,b){const [l1,p1]=a,[l2,p2]=b;const y=Math.sin(l2-l1)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(l2-l1);return Math.atan2(y,x)}
+
+/* ============ labels DOM ============ */
+const LB=$('#labels');const items=[];
+function mk(cls,html){const d=document.createElement('div');d.className=cls;d.innerHTML=html;LB.appendChild(d);return d}
+for(const c of world.labels){if(SKIP.has(c.n))continue;const at=LABEL_AT[c.n]||[c.lon,c.lat];
+  const name=NAMEFIX[c.n]||c.n;const boost=stops.some(s=>s.country===c.n)||c.n===home.country?60:1;items.push({el:mk('lb c'+(c.a>300?' big':'')+(stops.some(s=>s.country===c.n&&s.probable)?' hi':''),name),lon:at[0]*D2R,lat:at[1]*D2R,pri:c.a*boost,kind:'c',raw:c.n});}
+for(const [n,la,lo,t] of SEAS)items.push({el:mk('lb s',n),lon:lo*D2R,lat:la*D2R,pri:[0,900,60,8,2][t],kind:'s'});
+for(const [n,la,lo,t] of CITIES)items.push({el:mk('lb t',n),lon:lo*D2R,lat:la*D2R,pri:[0,40,8,1.5][t],kind:'t'});
+const pills=[];
+function pill(cls,html,lon,lat,dx=0,dy=0){const d=document.createElement('div');d.className='pill '+cls;d.innerHTML='<div class="in"><span class="dot"></span>'+html+'</div>';LB.appendChild(d);const o={el:d,lon,lat,dx,dy};pills.push(o);return o}
+const shipPill=pill('ship',`${V.shipLabel||'Our Ship'}`,0,0,0,-34);
+pill('home',`Home <small>${home.name}</small>`,home.lon*D2R,home.lat*D2R,0,-26);
+for(const s of stops)if(s.lat!=null){const o=pill('port',`${s.port} <small>${s.country}</small>`,s.lon*D2R,s.lat*D2R,0,26);o.stop=s}
+
+/* ============ camera control ============ */
+const cam={lon:100*D2R,lat:10*D2R,z:4.2, vlon:0,vlat:0, morph:0, morphT:0};
+let fly=null;let tilesOn=false,tilesBroken=false,tilesT=0,map=null,entering=false;const ZT=0.09;
+function flyTo(lon,lat,z,dur=2200){if(tilesOn)exitTiles();fly={a:{lon:cam.lon,lat:cam.lat,z:cam.z},b:{lon:cam.lon+wrap(lon-cam.lon),lat,z},t0:performance.now(),dur}}
+let sheetOffset=0;
+function updateCamera(){
+  const m=ease(cam.morph);MORPH=m;U.uMorph.value=m;
+  const g=sph(cam.lon,cam.lat,1+cam.z),f=new THREE.Vector3(cam.lon,cam.lat,cam.z);
+  camera.position.copy(g.lerp(f,m));
+  const tg=new THREE.Vector3(0,0,0).lerp(new THREE.Vector3(cam.lon,cam.lat,0),m);
+  camera.up.set(0,1,0);camera.lookAt(tg);
+  camera.near=Math.max(0.0005,cam.z*0.15);camera.far=200;camera.updateProjectionMatrix();
+}
+function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);camera.aspect=w/h;
+  const sh=$('#sheet');const sr=sh.getBoundingClientRect();sheetOffset=(innerWidth<760&&!document.body.classList.contains('tara'))?Math.min(sr.height,h*0.5)*0.42:document.body.classList.contains('tara')?h*0.16:0;
+  camera.setViewOffset(w,h,0,sheetOffset,w,h);camera.updateProjectionMatrix()}
+addEventListener('resize',resize);
+
+// pointer
+const pts=new Map();let drag=null,lastTap=0,pinch0=null;
+canvas.addEventListener('pointerdown',e=>{canvas.setPointerCapture(e.pointerId);pts.set(e.pointerId,{x:e.clientX,y:e.clientY});fly=null;
+  if(pts.size===1)drag={x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t:performance.now(),moved:0};
+  if(pts.size===2){const [a,b]=[...pts.values()];pinch0={d:Math.hypot(a.x-b.x,a.y-b.y),z:cam.z};drag=null}});
+canvas.addEventListener('pointermove',e=>{if(!pts.has(e.pointerId))return;pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pts.size===2&&pinch0){const [a,b]=[...pts.values()];const d=Math.hypot(a.x-b.x,a.y-b.y);cam.z=clamp(pinch0.z*pinch0.d/d,0.012,cam.morph>0.5?3.2:6);return}
+  if(drag){const dx=e.clientX-drag.x,dy=e.clientY-drag.y;drag.x=e.clientX;drag.y=e.clientY;drag.moved+=Math.abs(dx)+Math.abs(dy);
+    const k=2*Math.tan(camera.fov*D2R/2)*Math.min(cam.z,2.2)/innerHeight;const cl=cam.morph>0.5?1:Math.max(Math.cos(cam.lat),0.25);
+    const dl=-dx*k/cl,dp=dy*k;cam.lon=wrap(cam.lon+dl);cam.lat=clamp(cam.lat+dp,-1.35,1.35);cam.vlon=dl;cam.vlat=dp;}});
+const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pinch0=null;
+  if(drag&&drag.moved<8&&performance.now()-drag.t<400){const now=performance.now();if(now-lastTap<300){dblTap(e)}else tap(e);lastTap=now;cam.vlon=cam.vlat=0}
+  drag=null};
+canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
+canvas.addEventListener('wheel',e=>{e.preventDefault();fly=null;cam.z=clamp(cam.z*Math.exp(e.deltaY*0.0012),0.012,cam.morph>0.5?3.2:6)},{passive:false});
+function pick(e){const r=new THREE.Raycaster();const ndc=new THREE.Vector2(e.clientX/innerWidth*2-1,-(e.clientY/innerHeight)*2+1);r.setFromCamera(ndc,camera);
+  if(cam.morph<0.02){const s=new THREE.Sphere(new THREE.Vector3(),1);const p=r.ray.intersectSphere(s,new THREE.Vector3());if(!p)return null;return [Math.atan2(p.x,p.z),Math.asin(clamp(p.y,-1,1))]}
+  if(cam.morph>0.98){const pl=new THREE.Plane(new THREE.Vector3(0,0,1),0);const p=r.ray.intersectPlane(pl,new THREE.Vector3());if(!p||Math.abs(p.x)>Math.PI||Math.abs(p.y)>Math.PI/2)return null;return [p.x,p.y]}return null}
+function dblTap(e){const p=pick(e);if(p)flyTo(p[0],p[1],Math.max(cam.z*0.45,0.012),900)}
+
+// point in polygon for country lookup
+function inRing(x,y,r){let c=false;for(let i=0,j=r.length/2-1;i<r.length/2;j=i++){const xi=r[2*i],yi=r[2*i+1],xj=r[2*j],yj=r[2*j+1];if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c}return c}
+function countryAt(lon,lat){if(!countries)return null;const x=lon/D2R,y=lat/D2R;for(const f of countries){for(const poly of f.p){if(inRing(x,y,poly[0])){let hole=false;for(let k=1;k<poly.length;k++)if(inRing(x,y,poly[k]))hole=true;if(!hole)return f.n}}}return null}
+let toastT;
+function toast(html){const t=$('#toast');t.innerHTML=html;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
+function tap(e){const p=pick(e);if(!p)return;const n=countryAt(p[0],p[1]);
+  if(document.body.classList.contains('tara')){taraCountry(n,p);return}
+  if(n)toast(`<b>${NAMEFIX[n]||n}</b>`);}
+
+/* ============ Tara mode ============ */
+let voice=null;function pickVoice(){const vs=speechSynthesis.getVoices();voice=vs.find(v=>/en-IN/i.test(v.lang))||vs.find(v=>/en-GB/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||null}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}
+function say(t){if(!('speechSynthesis' in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);if(voice)u.voice=voice;u.rate=0.88;u.pitch=1.08;speechSynthesis.speak(u)}
+function tcard(flag,nm,fx){const c=$('#tcard');c.innerHTML=`${flag?`<div class="flag">${flag}</div>`:''}<div class="nm">${nm}</div>${fx?`<div class="fx">${fx}</div>`:''}`;c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop')}
+function taraCountry(n,p){if(!n){tcard('','The sea','Ships like ours sail across the big blue sea.');say('This is the sea. Ships like ours sail across the big blue sea.');return}
+  const name=NAMEFIX[n]||n;const f=FACTS[n];tcard(f?f[0]:'',name,f?f[1]:'');say('This is '+name+'. '+(f?f[1]:''));if(!tilesOn)flyTo(p[0],p[1],Math.max(Math.min(cam.z,1.2),0.5),1400)}
+function taraShip(){const s=state.cur;const where=state.mode==='port'||state.mode==='inbound'?`Our ship is in ${s.country}!`:`Our ship is sailing on the sea, going to ${state.next?state.next.country:'a new place'}!`;
+  const f=FACTS[s&&s.country];tcard(f?f[0]:'⚓','Our ship',where);say(where+(state.next&&state.next!==s?` Next, we are going to ${state.next.country}.`:''));flyTo(state.pos.lon,state.pos.lat,0.55,2000)}
+function taraHome(){tcard('🇮🇳','Home','This is home! '+home.name+', in India.');say('This is home! '+home.name+', in India. Hello, everyone!');flyTo(home.lon*D2R,home.lat*D2R,0.6,2200)}
+$('#tShip').onclick=taraShip;$('#tHome').onclick=taraHome;
+$('#bTara').onclick=()=>{const on=document.body.classList.toggle('tara');$('#bTara').classList.toggle('on',on);
+  if(on){tcard('','Hello, Tara!','Tap any country to hear its name.');say('Hello Tara! Tap any country to hear its name.')}else speechSynthesis&&speechSynthesis.cancel();setTimeout(resize,50)};
+
+/* ============ view toggle & fullscreen ============ */
+let morphTarget=0;
+$('#bView').onclick=()=>{morphTarget=morphTarget?0:1;$('#bView').classList.toggle('on',!!morphTarget);$('#bViewL').textContent=morphTarget?'Globe':'Flat map';if(morphTarget&&cam.z>2.6)cam.z=2.6;toast(morphTarget?'<b>Flat map</b>':'<b>Globe</b>')};
+const fsOK=document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen;
+if(!fsOK)$('#bFs').style.display='none';
+$('#bFs').onclick=()=>{const d=document;if(d.fullscreenElement||d.webkitFullscreenElement){(d.exitFullscreen||d.webkitExitFullscreen).call(d)}else{const el=d.documentElement;(el.requestFullscreen||el.webkitRequestFullscreen).call(el)}};
+const fsIn='<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',fsOut='<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>';
+const fsChange=()=>{const on=!!(document.fullscreenElement||document.webkitFullscreenElement);$('#fsIco').innerHTML=on?fsOut:fsIn;$('#bFs').classList.toggle('on',on);setTimeout(resize,120)};
+document.addEventListener('fullscreenchange',fsChange);document.addEventListener('webkitfullscreenchange',fsChange);
+
+/* ============ sheet ============ */
+const ICO={sun:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/></svg>',
+ moon:'<svg viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+ map:'<svg viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+ loc:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="8"/></svg>',
+ chev:'<svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg>'};
+function isDay(tz,now,lat,lon){const h=+fmt(now,tz,{hour:'numeric',hour12:false});return h>=6&&h<18}
+function gmaps(s){if(s&&s.lat!=null)return `https://www.google.com/maps/search/?api=1&query=${s.lat},${s.lon}`;if(s&&s.country)return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.country)}`;return '#'}
+function stopLine(s,now){const tz=s.tz||'UTC';const bits=[];
+  if(s.arrive){const d=new Date(s.arrive);bits.push(`${Date.now()>d?'Arrived':'Arrive'} ${s.arriveApprox?'~':''}${fDay(d,tz)}, ${fTime(d,tz)}`)}
+  if(s.activity)bits.push(s.activity);
+  if(s.depart){const d=new Date(s.depart);bits.push(`${Date.now()>d?'Departed':'Depart'} ${s.departApprox?'~':''}${fDay(d,tz)}, ${fTime(d,tz)}${s.departApprox?' (likely)':''}`)}
+  if(s.probable&&!s.arrive)bits.push(s.port?'Arrival date to be confirmed':'Port to be confirmed');
+  return bits.join('<br>')}
+function renderSheet(){
+  const now=new Date();compute(now);const st=state;const tzS=tzShip();const tzH=home.tz;
+  let chip,title,sub,countK,countV,when='',prog=null;
+  if(st.mode==='inbound'){chip='Inbound';title=st.stop.port;sub=`${st.stop.region?st.stop.region+', ':''}${st.stop.country}`;countK='Arriving in';countV=dur(st.eta-now);
+    const d=new Date(st.eta);when=`${st.stop.arriveApprox?'About ':''}${fTime(d,tzS)} ${dayWord(d,tzS,now)} · ${fTime(d,tzH)} in ${home.name}`}
+  else if(st.mode==='port'){chip='In port';title=st.stop.port;sub=`${st.stop.region?st.stop.region+', ':''}${st.stop.country}${st.stop.activity?' · '+st.stop.activity:''}`;
+    if(st.etd){countK='Departs in';countV=dur(st.etd-now);const d=new Date(st.etd);when=`${st.stop.departApprox?'Likely ':''}${dayWord(d,tzS,now)}, ${fTime(d,tzS)} ship time`;prog=st.since?clamp((now-st.since)/(st.etd-st.since),0,1):null}
+    else{countK='Alongside for';countV=st.since?dur(now-st.since):'—'}}
+  else if(st.mode==='sea'){chip='At sea';title=st.next.port||st.next.country;sub=`Bound for ${st.next.port?st.next.country:'port to be confirmed'} · from ${st.from.port}`;countK='Arriving in';countV=dur(st.eta-now);prog=st.f;
+    const d=new Date(st.eta);when=`About ${fTime(d,tzS)} ${dayWord(d,tzS,now)} · ${fTime(d,tzH)} in ${home.name}`}
+  else{chip='At sea';title=st.next.country;sub=`Sailing from ${st.from.port} · port to be confirmed`;countK='At sea for';countV=dur(now-st.since)}
+  const dS=isDay(tzS,now),dH=isDay(tzH,now);
+  const note=V.note&&V.note.text?`<div class="sec"><h3>A note from the ship</h3><div class="note">${V.note.text}<small>${V.note.date?fDay(new Date(V.note.date),tzS):''}</small></div></div>`:'';
+  const tlHtml=stops.map(s=>{const isNow=(st.stop===s)||(st.mode==='inbound'&&st.stop===s);
+    return `<div class="st ${isNow?'now':''} ${s.probable?'prob':''}"><div class="n">${s.port||s.country}${s.port?` <em>${s.country}</em>`:''}${s.probable?'<span class="tag">Probable</span>':''}</div><div class="m">${stopLine(s,now)}</div></div>`}).join('');
+  const target=st.stop||st.next;
+  $('#sheetBody').innerHTML=`
+   <div class="chip"><i></i>${chip}</div>
+   <div class="ttl">${title}</div><div class="sub">${sub}</div>
+   ${countV?`<div class="count"><span class="k">${countK}</span><span class="v">${countV}</span></div>`:''}
+   ${when?`<div class="when">${when}</div>`:''}
+   ${prog!=null?`<div class="bar"><i style="width:${(prog*100).toFixed(1)}%"></i></div>`:''}
+   <div class="clocks">
+    <div class="clk"><div class="l">${dS?ICO.sun:ICO.moon}Ship time</div><div class="t">${fTime(now,tzS)}</div><div class="d">${fDay(now,tzS)} · ${(shipRef()||{}).country||''}</div></div>
+    <div class="clk"><div class="l">${dH?ICO.sun:ICO.moon}${home.name}</div><div class="t">${fTime(now,tzH)}</div><div class="d">${fDay(now,tzH)} · India</div></div>
+   </div>
+   <div class="expand">${ICO.chev}<span>${$('#sheet').classList.contains('open')?'Less':'Voyage & details'}</span></div>
+   <div class="more">
+     ${note}
+     <div class="sec"><h3>Voyage</h3><div class="tl">${tlHtml}</div></div>
+     <div class="acts">
+       <a class="btn pri" href="${gmaps(target)}" target="_blank" rel="noopener">${ICO.map}Google Maps</a>
+       <button class="btn" id="bFly">${ICO.loc}Fly to ship</button>
+     </div>
+     <div class="foot">Updated ${fDay(new Date(V.updated),tzS)}, ${fTime(new Date(V.updated),tzS)} ship time · times are approximate</div>
+   </div>`;
+  const bf=$('#bFly');if(bf)bf.onclick=e=>{e.stopPropagation();flyToShip()};
+  $('.expand').onclick=()=>setSheet($('#sheet').classList.contains('open')?'':'open');
+  const plain=h=>h.replace(/<b>(\w)<\/b>/g,'$1 ').trim();
+  $('#peek').innerHTML=`<span class="pd"></span><span class="pt">${title}</span>${countV?`<span class="pr">${countK.replace(' in','')} ${plain(countV)}</span>`:''}<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;flex:none;opacity:.7"><path d="M6 15l6-6 6 6"/></svg>`;
+}
+function setSheet(m){const sh=$('#sheet');sh.classList.remove('open','min');if(m)sh.classList.add(m);try{localStorage.setItem('meridian-sheet',m==='open'?'':m)}catch(e){}renderSheet();setTimeout(resize,30);setTimeout(resize,650)}
+{const sh=$('#sheet');let g=null;
+ const down=e=>{g={y:e.clientY,t:performance.now()};e.currentTarget.setPointerCapture(e.pointerId)};
+ const upH=e=>{if(!g)return;const dy=e.clientY-g.y;const mode=sh.classList.contains('open')?'open':sh.classList.contains('min')?'min':'';
+   if(dy>35)setSheet(mode==='open'?'':'min');else if(dy<-35)setSheet(mode==='min'?'':'open');else setSheet(mode==='min'?'':mode==='open'?'':'min');g=null};
+ for(const el of [$('#sheet .grab'),$('#peek')]){el.addEventListener('pointerdown',down);el.addEventListener('pointerup',upH);el.addEventListener('pointercancel',()=>g=null)}
+ try{if(localStorage.getItem('meridian-sheet')==='min')sh.classList.add('min')}catch(e){}}
+function flyToShip(){flyTo(state.pos.lon,state.pos.lat,0.22,2000)}
+renderSheet();setInterval(()=>{const m=state.mode,lg=state.leg;renderSheet();if(state.mode!==m||state.leg!==lg)buildRoute()},20000);
+
+/* ============ close-up street map (Leaflet + CARTO) ============ */
+const tanH=()=>2*Math.tan(camera.fov*D2R/2);
+const lzFromZ=(z,lat)=>Math.log2(innerHeight*2*Math.PI*Math.max(Math.cos(lat),0.2)/(256*tanH()*z));
+const zFromLz=(lz,lat)=>innerHeight*2*Math.PI*Math.max(Math.cos(lat),0.2)/(256*tanH()*Math.pow(2,lz));
+let mkShip=null,tileErr=0,tileOk=false;
+function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function initMap(){
+  map=L.map('tiles',{zoomControl:false,zoomSnap:0,zoomDelta:0.5,wheelPxPerZoomLevel:100,minZoom:3,maxZoom:18,worldCopyJump:true,attributionControl:true});
+  map.attributionControl.setPrefix(false);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OpenStreetMap contributors © CARTO'})
+   .on('tileerror',()=>{tileErr++;if(tileErr>3&&!tileOk){tilesBroken=true;if(tilesOn)exitTiles()}}).on('tileload',()=>tileOk=true).addTo(map);
+  const dot=(lat,lon,col,html)=>L.marker([lat,lon],{icon:L.divIcon({className:'',html:`<div class="dotmk" style="background:${col}"><div class="mklab">${html}</div></div>`,iconSize:[16,16],iconAnchor:[8,8]}),interactive:false}).addTo(map);
+  for(const s of stops)if(s.lat!=null&&s!==state.stop)dot(s.lat,s.lon,'#1d2b44',`${esc(s.port)}<small>${esc(s.country)}</small>`);
+  dot(home.lat,home.lon,'#ff9a5a',`Home<small>${esc(home.name)}</small>`);
+  mkShip=L.marker([0,0],{icon:L.divIcon({className:'',html:'<div class="shipmk"><div class="rg"></div><div class="rg b"></div><div class="core"></div><div class="mklab" id="mkShipL"></div></div>',iconSize:[64,64],iconAnchor:[32,32]}),interactive:false,zIndexOffset:1000}).addTo(map);
+  map.on('zoom',()=>{if(tilesOn&&!entering&&map.getZoom()<lzFromZ(ZT*1.45,map.getCenter().lat*D2R))exitTiles()});
+  map.on('click',e=>{const n=countryAt(e.latlng.lng*D2R,e.latlng.lat*D2R);if(document.body.classList.contains('tara'))taraCountry(n,[e.latlng.lng*D2R,e.latlng.lat*D2R]);else if(n)toast(`<b>${esc(NAMEFIX[n]||n)}</b>`)});
+}
+function enterTiles(){
+  if(tilesBroken||!window.L)return;if(!map)initMap();
+  tilesOn=true;entering=true;tilesT=performance.now();map.invalidateSize();
+  map.setView([cam.lat/D2R,cam.lon/D2R],lzFromZ(cam.z,cam.lat),{animate:false});map.panBy([0,sheetOffset],{animate:false});
+  mkShip.setLatLng([state.pos.lat/D2R,state.pos.lon/D2R]);
+  const l=document.getElementById('mkShipL');if(l)l.innerHTML=esc(V.shipLabel||'Our Ship')+(state.stop?`<small>${state.mode==='inbound'?'arriving ':'at '}${esc(state.stop.port)}</small>`:'');
+  document.body.classList.add('tiles');cam.vlon=cam.vlat=0;drag=null;pts.clear();pinch0=null;
+  setTimeout(()=>entering=false,400);
+}
+function exitTiles(){
+  if(!tilesOn)return;tilesOn=false;
+  const c=map.containerPointToLatLng([innerWidth/2,innerHeight/2-sheetOffset]);
+  cam.lon=wrap(c.lng*D2R);cam.lat=clamp(c.lat*D2R,-1.3,1.3);cam.z=Math.max(zFromLz(map.getZoom(),cam.lat),ZT*1.5);
+  document.body.classList.remove('tiles');
+}
+
+/* ============ label layout ============ */
+const tmp=new THREE.Vector3();
+function layoutLabels(){
+  const W=innerWidth,H=innerHeight,occ=[];for(const sel of ['#brand','#tools','#sheet','#tcard','#tbtns']){const el=$(sel);if(!el||el.offsetParent===null&&sel!=='#sheet')continue;const r=el.getBoundingClientRect();if(r.width&&getComputedStyle(el).opacity!=='0')occ.push([r.left-4,r.top-4,r.right+4,r.bottom+4])}const z=cam.z;const camP=camera.position;
+  const vis=(lon,lat)=>{const p=place(lon,lat,0.002);const n=sph(lon,lat);const f=MORPH>0.5?1:n.dot(tmp.copy(camP).sub(p).normalize());tmp.copy(p).project(camera);
+    return {x:(tmp.x+1)/2*W,y:(1-tmp.y)/2*H,f,ok:tmp.z<1&&f>0.08}};
+  const pocc=[];let pAdded=false;
+  for(const o of pills){const v=vis(o.lon,o.lat);const here=o.stop&&state.stop===o.stop;const on=!here&&v.ok&&v.x>-50&&v.x<W+50&&v.y>-50&&v.y<H+50;
+    const r=o.el._w||(o.el._w=o.el.firstChild.offsetWidth);
+    o.el.style.opacity=on?Math.min(1,(v.f-0.08)*4):0;
+    if(on){const x=v.x-r/2+o.dx,y=v.y-14+o.dy;o.el.style.transform=`translate(${x}px,${y}px)`;pocc.push([x,y,x+r,y+28])}}
+  const thr=10*z*z;const sorted=items;
+  for(const it of sorted){
+    if(!pAdded&&it.pri<1000){occ.push(...pocc);pAdded=true}
+    let show=false;let v=null;
+    const need=it.kind==='c'?thr:it.kind==='s'?thr*0.7:thr*1.6;
+    if(it.pri>=need&&!(it.kind==='t'&&z>1.1)&&!(it.kind==='s'&&it.pri>100&&z<0.25)){v=vis(it.lon,it.lat);
+      if(v.ok&&v.x>-80&&v.x<W+80&&v.y>-30&&v.y<H+30){
+        const w=it._w||(it._w=it.el.offsetWidth||it.el.textContent.length*7.5),h=16;const x=v.x-(it.kind==='t'?4:w/2),y=v.y-h/2;
+        const box=[x-6,y-3,x+w+6,y+h+3];let hit=false;for(const b of occ)if(box[0]<b[2]&&box[2]>b[0]&&box[1]<b[3]&&box[3]>b[1]){hit=true;break}
+        if(!hit){occ.push(box);show=true;it.el.style.transform=`translate(${x}px,${y}px)`}}}
+    const a=show?Math.min(1,(v.f-0.08)*3.5):0;if(it._a!==a){it.el.style.opacity=a;it._a=a}
+  }
+}
+// sort items by priority descending once (countries interleaved)
+items.sort((a,b)=>b.pri-a.pri);
+
+/* ============ loop ============ */
+resize();updateCamera();
+const t0=performance.now();
+function frame(now){
+  const t=(now-t0)/1000;U.uTime.value=t;
+  const [sl,sp]=sunLL(new Date());U.uSun.value.copy(sph(sl,sp));sunL.position.copy(place(sl,sp,3));
+  // morph
+  cam.morph+=(morphTarget-cam.morph)*0.06;if(Math.abs(cam.morph-morphTarget)<0.001)cam.morph=morphTarget;
+  if(cam.morph>0.5)cam.lat=clamp(cam.lat,-1.2,1.2);
+  // fly
+  if(fly){const k=clamp((now-fly.t0)/fly.dur,0,1),e=ease(k);
+    // arc out in altitude for long flights
+    const dist=Math.hypot(wrap(fly.b.lon-fly.a.lon),fly.b.lat-fly.a.lat);const lift=Math.sin(Math.PI*e)*Math.min(dist*0.9,1.6)*(1-cam.morph*0.6);
+    cam.lon=wrap(fly.a.lon+(fly.b.lon-fly.a.lon)*e);cam.lat=fly.a.lat+(fly.b.lat-fly.a.lat)*e;
+    cam.z=Math.exp(Math.log(fly.a.z)+(Math.log(fly.b.z)-Math.log(fly.a.z))*e)+lift*Math.max(fly.a.z,fly.b.z,0.3)*0.6;
+    if(k>=1)fly=null;}
+  else if(!drag){cam.lon=wrap(cam.lon+cam.vlon);cam.lat=clamp(cam.lat+cam.vlat,-1.35,1.35);cam.vlon*=0.92;cam.vlat*=0.92}
+  if(!tilesOn&&!tilesBroken&&!fly&&!drag&&!pinch0&&(cam.morph===0||cam.morph===1)&&cam.z<ZT&&window.L)enterTiles();
+  if(tilesOn&&now-tilesT>800){requestAnimationFrame(frame);return}
+  updateCamera();
+  atmMat.uniforms.uFade.value=1-MORPH;atm.visible=MORPH<0.99;
+  if(window._sky)window._sky.position.copy(camera.position);
+  // ship
+  const pos=state.pos;let hd=1.6;
+  if(state.pos&&state.pos.toward)hd=headingTo([pos.lon,pos.lat],state.pos.toward);
+  else if(state.mode==='departed'||state.mode==='port'){hd=2.4}
+  const sc=clamp(cam.z*0.032,0.0006,0.03)*(document.body.classList.contains('tara')?1.8:1);
+  const p=orientOnSurface(ship,pos.lon,pos.lat,0.0005,hd);ship.scale.setScalar(sc);
+  const {up:upv}=frameAt(pos.lon,pos.lat,0);
+  beacon.position.copy(p).addScaledVector(upv,sc*0.3);const bs=cam.z*0.06*(1+0.12*Math.sin(t*2.4));beacon.scale.setScalar(bs);beacon.material.opacity=clamp(cam.z*1.1,0.2,0.9);
+  for(const [pm,ph] of [[pulse,0],[pulse2,0.5]]){const k=((t*0.45+ph)%1);orientOnSurface(pm,pos.lon,pos.lat,0.0008,0);pm.rotateX(-Math.PI/2);
+    pm.scale.setScalar(cam.z*(0.03+0.13*k));pm.material.opacity=(1-k)*0.7;}
+  sunL.target=ship;
+  // home & ports
+  homeDot.position.copy(place(home.lon*D2R,home.lat*D2R,0.002));homeDot.scale.setScalar(cam.z*0.06);
+  for(const {s,sp} of portDots){sp.position.copy(place(s.lon*D2R,s.lat*D2R,0.002));sp.scale.setScalar(cam.z*0.035)}
+  shipPill.lon=pos.lon;shipPill.lat=pos.lat;{const txt=(V.shipLabel||'Our Ship')+(state.stop?` <small>${state.mode==='inbound'?'arriving ':'at '}${state.stop.port}</small>`:'');if(shipPill._t!==txt){shipPill._t=txt;shipPill.el.firstChild.innerHTML='<span class="dot"></span>'+txt;shipPill.el._w=0}}
+  renderer.render(scene,camera);
+  layoutLabels();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// intro
+setTimeout(()=>{$('#load').classList.add('gone');cam.lon=state.pos.lon-1.1;cam.lat=state.pos.lat+0.25;cam.z=5.2;flyTo(state.pos.lon,state.pos.lat,0.95,3600)},350);
+window.__m={cam,state,flyTo,stops};
+
+/* refresh voyage when app comes back to front */
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)fetch(VF+'?t='+Date.now(),{cache:'no-store'}).then(r=>r.json()).then(j=>{if(j.updated!==V.updated)location.reload()}).catch(()=>{})});
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
