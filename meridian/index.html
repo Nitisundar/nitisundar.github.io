@@ -773,7 +773,7 @@ function layoutLabels(){
   const vis=(lon,lat)=>{const p=place(lon,lat,0.002);const n=sph(lon,lat);const f=MORPH>0.5?1:n.dot(tmp.copy(camP).sub(p).normalize());tmp.copy(p).project(camera);
     return {x:(tmp.x+1)/2*W,y:(1-tmp.y)/2*H,f,ok:tmp.z<1&&f>0.08}};
   const pocc=[];let pAdded=false;
-  for(const o of pills){const v=vis(o.lon,o.lat);const here=o.stop&&state.stop===o.stop;const on=!here&&v.ok&&v.x>-50&&v.x<W+50&&v.y>-50&&v.y<H+50;
+  const ui=occ.slice();for(const o of pills){const v=vis(o.lon,o.lat);const here=o.stop&&state.stop===o.stop;const pw=o.el._w||100,px=v.x-pw/2+o.dx,py=v.y-14+o.dy;const underUi=ui.some(b=>px<b[2]&&px+pw>b[0]&&py<b[3]&&py+28>b[1]);const on=!here&&!underUi&&v.ok&&v.x>-50&&v.x<W+50&&v.y>-50&&v.y<H+50;
     const r=o.el._w||(o.el._w=o.el.firstChild.offsetWidth);
     o.el.style.opacity=on?Math.min(1,(v.f-0.08)*4):0;
     if(on){const x=v.x-r/2+o.dx,y=v.y-14+o.dy;o.el.style.transform=`translate(${x}px,${y}px)`;pocc.push([x,y,x+r,y+28])}}
