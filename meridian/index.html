@@ -679,7 +679,7 @@ function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;',
 function initMap(){
   map=L.map('tiles',{zoomControl:false,zoomSnap:0,zoomDelta:0.5,wheelPxPerZoomLevel:100,minZoom:3,maxZoom:18,worldCopyJump:true,attributionControl:true});
   map.attributionControl.setPrefix(false);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OpenStreetMap contributors © CARTO'})
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap contributors'})
    .on('tileerror',()=>{tileErr++;if(tileErr>3&&!tileOk){tilesBroken=true;if(tilesOn)exitTiles()}}).on('tileload',()=>tileOk=true).addTo(map);
   const dot=(lat,lon,col,html)=>L.marker([lat,lon],{icon:L.divIcon({className:'',html:`<div class="dotmk" style="background:${col}"><div class="mklab">${html}</div></div>`,iconSize:[16,16],iconAnchor:[8,8]}),interactive:false}).addTo(map);
   for(const s of stops)if(s.lat!=null&&s!==state.stop)dot(s.lat,s.lon,'#1d2b44',`${esc(s.port)}<small>${esc(s.country)}</small>`);
