@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffd84d">
+<meta name="theme-color" content="#bfe9ff">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
@@ -36,16 +36,17 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 #home{height:100%;overflow-y:auto;padding-block:14px 40px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   background:
-    radial-gradient(circle at 20px 22px,#ff6fb5 6px,transparent 7px) 0 0/120px 110px,
-    radial-gradient(circle at 80px 70px,#4cc3ff 6px,transparent 7px) 0 0/120px 110px,
-    radial-gradient(circle at 60px 18px,#38c172 5px,transparent 6px) 0 0/140px 130px,
-    radial-gradient(circle at 30px 90px,#ff8c1a 5px,transparent 6px) 0 0/140px 130px,
-    radial-gradient(circle at 100px 40px,#9b6bff 5px,transparent 6px) 0 0/160px 150px,
-    linear-gradient(180deg,#ffe14d,#ffc93c)}
+    radial-gradient(circle at 26px 26px,rgba(255,255,255,.7) 5px,transparent 6px) 0 0/90px 90px,
+    radial-gradient(circle at 70px 64px,rgba(255,255,255,.5) 3px,transparent 4px) 0 0/90px 90px,
+    radial-gradient(ellipse 55% 35% at 92% 6%,rgba(255,168,214,.75),transparent 70%),
+    radial-gradient(ellipse 50% 32% at 4% 58%,rgba(196,160,255,.6),transparent 70%),
+    radial-gradient(ellipse 60% 30% at 96% 92%,rgba(255,190,225,.55),transparent 70%),
+    linear-gradient(170deg,#bfe9ff 0%,#d4f3ff 35%,#d9f7df 70%,#c6efc9 100%);
+  background-attachment:local}
 .inner{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
 .top{display:flex;align-items:center;gap:10px}
-.logo span:nth-child(6n+1){color:#ff4d6d}.logo span:nth-child(6n+2){color:#ff9f1c}.logo span:nth-child(6n+3){color:#2ec4b6}
-.logo span:nth-child(6n+4){color:#3a86ff}.logo span:nth-child(6n+5){color:#8338ec}.logo span:nth-child(6n){color:#38c172}
+.logo span:nth-child(6n+1){color:#ff5fa8}.logo span:nth-child(6n+2){color:#9b6bff}.logo span:nth-child(6n+3){color:#2fb6f0}
+.logo span:nth-child(6n+4){color:#34c38f}.logo span:nth-child(6n+5){color:#d65cff}.logo span:nth-child(6n){color:#4aa8ff}
 .logo{flex:1;min-width:0;margin:0;font-size:clamp(28px,7vw,46px);font-weight:800;line-height:1;letter-spacing:.5px;
   color:#fff;-webkit-text-stroke:3px var(--ink);paint-order:stroke fill;text-shadow:0 4px 0 var(--ink);text-wrap:balance}
 .round{width:52px;height:52px;flex:none;border-radius:50%;border:3px solid var(--ink);background:#fff;
@@ -54,21 +55,22 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 #grownBtn .fill{position:absolute;inset:auto 0 0 0;height:0;background:var(--leaf);opacity:.55;transition:height 0s}
 #grownBtn.holding .fill{height:100%;transition:height 1.4s linear}
 #grownBtn span{position:relative}
-#fsBtn{background:#8fdcff}#grownBtn{background:#b8f2a0}
+#fsBtn{background:#ffd1ea}#grownBtn{background:#e3d4ff}
 @media (display-mode:standalone),(display-mode:fullscreen){#fsBtn{display:none}}
-.surprise{border:3px solid var(--ink);border-radius:26px;background:linear-gradient(90deg,#ff4d6d,#ff9f1c,#ffd60a,#38c172,#3a86ff,#8338ec);color:#fff;font-size:clamp(26px,6vw,36px);font-weight:800;
+.surprise{border:3px solid var(--ink);border-radius:26px;background:linear-gradient(100deg,#ff7ec4,#c58bff 55%,#7ab8ff);color:#fff;font-size:clamp(26px,6vw,36px);font-weight:800;
   padding:14px 18px;box-shadow:0 6px 0 var(--ink);display:flex;align-items:center;justify-content:center;gap:12px;
   -webkit-text-stroke:1.5px var(--ink);paint-order:stroke fill}
 .surprise:active{transform:translateY(4px);box-shadow:0 2px 0 var(--ink)}
+/* */
 .surprise .gift{font-size:1.3em;-webkit-text-stroke:0;animation:wob 2.4s ease-in-out infinite}
 .label{margin:4px 2px -6px;font-size:18px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
 .favs{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 10px;scrollbar-width:none}
 .favs::-webkit-scrollbar{display:none}
-.fav{flex:none;width:118px;border:3px solid var(--ink);border-radius:20px;background:#fff0f6;box-shadow:0 5px 0 var(--ink);
+.fav{flex:none;width:118px;border:3px solid var(--ink);border-radius:20px;background:#fff;box-shadow:0 5px 0 var(--ink);
   padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
 .fav .ic{font-size:36px;line-height:1.1}
 .fav .th{position:absolute;top:4px;right:6px;font-size:20px}
-.fav .ht{position:absolute;top:4px;left:7px;font-size:16px;color:var(--berry)}
+.fav .ht{position:absolute;top:4px;left:7px;font-size:16px;color:#ff5fa8}
 .fav .nm{font-size:14px;font-weight:700;line-height:1.1;text-align:center}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:14px}
 .tile{border:3px solid var(--ink);border-radius:24px;background:var(--tc);box-shadow:0 6px 0 var(--ink);
@@ -79,9 +81,9 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .foot{font-size:14px;opacity:.7;text-align:center;margin-top:6px}
 
 /* ---------- Play ---------- */
-#play{height:100%;display:flex;flex-direction:column;background:var(--ink)}
+#play{height:100%;display:flex;flex-direction:column;background:#bfe9ff}
 .bar{display:flex;align-items:center;gap:10px;padding-block:8px;
-  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));background:linear-gradient(90deg,#ffd60a,#ffb3c7,#8fdcff)}
+  padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));background:linear-gradient(90deg,#bfe9ff,#d9f7df 55%,#ffd6ec)}
 .bar .gname{flex:1;min-width:0;text-align:center;font-weight:800;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bar .lv{font-size:18px;letter-spacing:2px;color:var(--ink)}
 #favBtn.on{background:var(--berry);color:#fff}
@@ -226,7 +228,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 .face [data-part].yes{animation:boing .5s 2}
 
 /* celebration */
-#party{position:fixed;inset:0;z-index:100;display:grid;place-items:center;overflow:hidden;background:rgba(255,216,77,.25)}
+#party{position:fixed;inset:0;z-index:100;display:grid;place-items:center;overflow:hidden;background:rgba(255,190,230,.3)}
 .yay{font-size:min(22vmin,150px);font-weight:800;color:#fff;-webkit-text-stroke:6px var(--ink);paint-order:stroke fill;text-shadow:0 8px 0 var(--ink);animation:yay .7s cubic-bezier(.3,1.7,.5,1) both;text-align:center;line-height:1}
 .lvup{position:absolute;top:62%;font-size:min(8vmin,40px);font-weight:800;background:#fff;border:4px solid var(--ink);border-radius:20px;padding:2px 18px;box-shadow:0 5px 0 var(--ink);animation:yay .7s .2s both}
 .conf{position:absolute;top:-12vmin;animation:fall linear forwards;line-height:1}
@@ -347,20 +349,20 @@ const ANIMALS=[['🐮','cow','Moo! Moo!'],['🦆','duck','Quack! Quack!'],['🐶
 const WORDS={A:['apple','🍎'],B:['ball','⚽'],C:['cat','🐱'],D:['dog','🐶'],E:['egg','🥚'],F:['fish','🐟'],G:['grapes','🍇'],H:['hat','🎩'],I:['ice cream','🍦'],J:['juice','🧃'],K:['kite','🪁'],L:['lion','🦁'],M:['moon','🌙'],N:['nose','👃'],O:['orange','🍊'],P:['pig','🐷'],Q:['queen','👸'],R:['rabbit','🐰'],S:['sun','☀️'],T:['tree','🌳'],U:['umbrella','☂️'],V:['van','🚐'],W:['whale','🐳'],Y:['yo-yo','🪀'],Z:['zebra','🦓']};
 
 const GAMES=[
- {id:'count',name:'Tap & Count',icon:'⭐',col:'#3fb6ff'},
- {id:'howmany',name:'How Many?',icon:'🔢',col:'#ff6f9f'},
- {id:'colours',name:'Colour Sort',icon:'🎨',col:'#ff9f1c'},
- {id:'rainbow',name:'Rainbow',icon:'🌈',col:'#2ec4b6'},
- {id:'pairs',name:'Find Pairs',icon:'🃏',col:'#9b6bff'},
- {id:'letters',name:'Letter Pop',icon:'🔤',col:'#ff4d6d'},
- {id:'trace',name:'Trace It',icon:'✏️',col:'#38c172'},
- {id:'shapes',name:'Shapes',icon:'🔺',col:'#ffc300'},
- {id:'bigsmall',name:'Big & Small',icon:'🐘',col:'#00b4d8'},
- {id:'animals',name:'Who Says?',icon:'🐮',col:'#f4845f'},
- {id:'puzzle',name:'Puzzle',icon:'🧩',col:'#52b788'},
- {id:'peek',name:'Peekaboo',icon:'🙈',col:'#c77dff'},
- {id:'body',name:'My Face',icon:'👃',col:'#ff7b54'},
- {id:'feel',name:'Happy & Sad',icon:'😊',col:'#f9c80e'}
+ {id:'count',name:'Tap & Count',icon:'⭐',col:'#5cc8ff'},
+ {id:'howmany',name:'How Many?',icon:'🔢',col:'#5fd6a0'},
+ {id:'colours',name:'Colour Sort',icon:'🎨',col:'#ff8cc8'},
+ {id:'rainbow',name:'Rainbow',icon:'🌈',col:'#4fb3ff'},
+ {id:'pairs',name:'Find Pairs',icon:'🃏',col:'#b08cff'},
+ {id:'letters',name:'Letter Pop',icon:'🔤',col:'#6fdc8c'},
+ {id:'trace',name:'Trace It',icon:'✏️',col:'#46c2e8'},
+ {id:'shapes',name:'Shapes',icon:'🔺',col:'#ff9fd2'},
+ {id:'bigsmall',name:'Big & Small',icon:'🐘',col:'#52cfa8'},
+ {id:'animals',name:'Who Says?',icon:'🐮',col:'#a78bfa'},
+ {id:'puzzle',name:'Puzzle',icon:'🧩',col:'#64b5ff'},
+ {id:'peek',name:'Peekaboo',icon:'🙈',col:'#7ad98f'},
+ {id:'body',name:'My Face',icon:'👃',col:'#f39bd6'},
+ {id:'feel',name:'Happy & Sad',icon:'😊',col:'#4dd0c4'}
 ];
 const gameById=id=>GAMES.find(g=>g.id===id);
 
