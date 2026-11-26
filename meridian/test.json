@@ -1,0 +1,47 @@
+{
+  "updated": "2026-11-26T17:30:00+08:00",
+  "shipLabel": "Our Ship",
+  "home": {
+    "name": "Tamil Nadu",
+    "country": "India",
+    "lat": 11.1,
+    "lon": 78.6,
+    "tz": "Asia/Kolkata"
+  },
+  "note": null,
+  "stops": [
+    {
+      "id": "tpp",
+      "port": "Tanjung Pelepas",
+      "region": "Johor",
+      "country": "Malaysia",
+      "lat": 1.3625,
+      "lon": 103.5462,
+      "tz": "Asia/Kuala_Lumpur",
+      "arrive": "2026-11-24T22:00:00+08:00",
+      "arriveApprox": true,
+      "depart": "2026-11-26T22:00:00+08:00",
+      "departApprox": true,
+      "activity": "Loading cargo"
+    },
+    {
+      "id": "idn",
+      "port": null,
+      "country": "Indonesia",
+      "tz": "Asia/Jakarta",
+      "probable": true
+    }
+  ],
+  "legs": [],
+  "fixes": [
+    {
+      "t": "2026-11-26T17:18:15+08:00",
+      "lat": 1.2695568,
+      "lon": 103.5839966,
+      "sog_kn": 0.0,
+      "cog": null,
+      "src": "GPS screenshot"
+    }
+  ],
+  "history": []
+}

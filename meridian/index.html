@@ -138,6 +138,20 @@ body.tiles #brand{background:rgba(10,16,28,.72);backdrop-filter:blur(12px);-webk
 .dotmk{width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);position:relative}
 .dotmk .mklab{margin-bottom:8px}
 
+.gps{display:flex;align-items:center;gap:10px;width:100%;margin-top:14px;padding:11px 14px;border-radius:14px;background:rgba(127,227,255,.07);border:1px solid rgba(127,227,255,.18);text-align:left;font-size:14px;color:var(--ink2);line-height:1.35}
+.gps svg{width:18px;height:18px;flex:none;stroke:var(--sea);fill:none;stroke-width:1.8}
+.gps b{color:var(--ink);font-weight:600}
+.photos{display:grid;gap:6px;margin-top:12px}.photos.n1{grid-template-columns:1fr}.photos.n2{grid-template-columns:1fr 1fr}.photos.n3{grid-template-columns:1fr 1fr 1fr}
+.photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;cursor:zoom-in;display:block}.photos.n1 img{aspect-ratio:4/3}
+.pv{display:flex;justify-content:space-between;gap:10px;font-size:14.5px;padding:8px 0;border-bottom:1px solid var(--line)}.pv span{color:var(--ink3)}
+.btn.wide{width:100%;margin-top:12px}.btn.on{background:rgba(127,227,255,.16);border-color:rgba(127,227,255,.4)}
+#lb{position:fixed;inset:0;z-index:30;background:rgba(0,0,0,.94);display:none;align-items:center;justify-content:center}
+#lb.on{display:flex}#lb img{max-width:100%;max-height:100%;object-fit:contain}
+#lb .x{position:absolute;top:calc(14px + var(--safeT));right:14px;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.14);font-size:26px;color:#fff}
+#lb .cnt{position:absolute;bottom:calc(20px + var(--safeB));left:0;right:0;text-align:center;color:#fff;font-size:14px}
+#lb .nv{position:absolute;top:50%;width:52px;height:52px;margin-top:-26px;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;font-size:28px}
+#lb .pv2{left:10px}#lb .nx{right:10px}
+#toast span{display:block;margin:2px 0 0!important}
 /* toast */
 #toast{position:fixed;left:50%;top:calc(80px + var(--safeT));transform:translate(-50%,-10px);padding:10px 16px;border-radius:14px;font-size:13px;opacity:0;pointer-events:none;transition:all .35s;z-index:7;white-space:nowrap}
 #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -192,6 +206,7 @@ body.tara .lb.t, body.tara .lb.s{display:none}
 </div>
 
 <div id="toast" class="glass"></div>
+<div id="lb"><img alt=""><button class="x" aria-label="Close">×</button><button class="nv pv2" aria-label="Previous">‹</button><button class="nv nx" aria-label="Next">›</button><div class="cnt"></div></div>
 <div id="load"><div class="w"><h1>Meridian</h1><p>Finding our ship</p><div class="pr"><i id="lp"></i></div></div></div>
 
 <script src="assets/leaflet.js"></script>
@@ -436,6 +451,31 @@ function compute(now){
   }
   if(!state.mode&&stops[0]){const s=stops[0];Object.assign(state,{mode:'port',stop:s,pos:{lon:s.lon*D2R,lat:s.lat*D2R}})}
   state.cur=state.stop||state.from||state.next;
+  applyFix(t);
+}
+/* GPS fixes: latest fix moves the ship; between fixes we carry on at its speed */
+const FIXES=(V.fixes||[]).map(f=>({...f,ts:Date.parse(f.t)})).filter(f=>!isNaN(f.ts)&&f.lat!=null).sort((a,b)=>a.ts-b.ts);
+const NM=1/3440.065; // radians per nautical mile
+function destPt(lat,lon,brg,d){const la=Math.asin(Math.sin(lat)*Math.cos(d)+Math.cos(lat)*Math.sin(d)*Math.cos(brg));
+  return {lat:la,lon:wrap(lon+Math.atan2(Math.sin(brg)*Math.sin(d)*Math.cos(lat),Math.cos(d)-Math.sin(lat)*Math.sin(la)))}}
+function projFrac(p,lon,lat){ // fraction along path nearest to point
+  const L=pathLen(p);let best=1e9,bf=0,acc=0;const P=sph(lon,lat);
+  for(let i=1;i<p.length;i++){const A=sph(p[i-1][0]*D2R,p[i-1][1]*D2R),B=sph(p[i][0]*D2R,p[i][1]*D2R);const g=A.angleTo(B);
+    for(let k=0;k<=10;k++){const q=A.clone().lerp(B,k/10).normalize();const d=q.angleTo(P);if(d<best){best=d;bf=(acc+g*k/10)/L}}acc+=g}
+  return {f:bf,off:best,L}}
+function applyFix(t){
+  const F=FIXES.filter(f=>f.ts<=t+6e5).pop();state.fix=F||null;if(!F)return;
+  const age=t-F.ts;state.fixAge=age;if(age>36*3600e3){state.fix=null;return}
+  const sog=F.sog_kn||0,lat=F.lat*D2R,lon=F.lon*D2R;let pos={lon,lat};
+  const leg=state.leg||(state.mode==='port'||state.mode==='departed'?null:null)||(state.next&&state.from&&legFor(state.from.id,state.next.id));
+  const hrs=Math.min(Math.max(age,0)/3600e3,6);
+  if(sog>0.5&&hrs>0){
+    if(leg&&leg.path){const pr=projFrac(leg.path,lon,lat);if(pr.off<40*NM){const f2=Math.min(1,pr.f+sog*hrs*NM/pr.L);pos=along(leg.path,f2);state.f=f2}else if(F.cog!=null)pos=destPt(lat,lon,F.cog*D2R,sog*hrs*NM)}
+    else if(F.cog!=null)pos=destPt(lat,lon,F.cog*D2R,sog*hrs*NM);
+  }
+  state.pos=pos;if(F.cog!=null&&sog>0.5)state.hdg=F.cog*D2R;
+  // near a port but not moving and not at the berth -> at anchor
+  const ref=state.stop||state.next;if(ref&&ref.lat!=null){const dnm=sph(lon,lat).angleTo(sph(ref.lon*D2R,ref.lat*D2R))/NM;state.fixPortNm=dnm;state.anchored=sog<0.5&&dnm>1&&dnm<25}
 }
 compute(new Date());
 
@@ -443,13 +483,13 @@ compute(new Date());
 const routeMat=new THREE.ShaderMaterial({uniforms:{...U,uPx:{value:PX}},transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,
   vertexShader:GLSL_PLACE+`attribute vec2 ll;attribute float u;attribute float st;uniform float uPx;uniform float uTime;varying float vSt;varying float vU;varying float vF;
   void main(){vec3 p=place(ll,0.0015);vSt=st;vU=u;vec3 n=sph(ll);vF=mix(dot(n,normalize(cameraPosition-p)),1.0,uMorph);
-   vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;gl_PointSize=(st<0.5?3.0:2.6)*uPx;}`,
+   vec4 mv=modelViewMatrix*vec4(p,1.0);gl_Position=projectionMatrix*mv;gl_PointSize=(st>3.5&&st<4.5?11.0:st<0.5||(st>2.5&&st<3.5)?3.0:2.6)*uPx;}`,
   fragmentShader:`uniform float uTime;varying float vSt;varying float vU;varying float vF;
   void main(){vec2 c=gl_PointCoord-0.5;float r=length(c);float a=smoothstep(0.5,0.15,r)*smoothstep(-0.02,0.2,vF);
    vec3 col;if(vSt<0.5){float f=0.55+0.45*sin(vU*60.0-uTime*3.0);col=vec3(0.5,0.9,1.0)*(0.7+f*0.6);}
-   else if(vSt<1.5){col=vec3(0.85,0.95,1.0)*0.75;}else{col=vec3(0.95,0.77,0.43)*0.85;}
+   else if(vSt<1.5){col=vec3(0.85,0.95,1.0)*0.75;}else if(vSt<2.5){col=vec3(0.95,0.77,0.43)*0.85;}else if(vSt<3.5){col=vec3(1.0,0.97,0.88);}else if(vSt<4.5){float c2=smoothstep(0.5,0.32,r)-smoothstep(0.28,0.12,r)*0.65;col=vec3(1.0,0.98,0.9)*1.2;a=c2*smoothstep(-0.02,0.2,vF);}else{col=vec3(0.62,0.72,0.95)*0.8;}
    gl_FragColor=vec4(col,a);}`});
-let routePts=null;
+let routePts=null;let showHistory=false;
 function buildRoute(){
   if(routePts){scene.remove(routePts);routePts.geometry.dispose()}
   const ll=[],u=[],st=[];
@@ -460,6 +500,12 @@ function buildRoute(){
       ll.push(q.lon,q.lat);u.push(s);st.push(done?0:(stops[i].probable?2:1));
       s+=done?spacingDone:spacingFut;}
   }
+  // recorded GPS track (current voyage) + fix markers
+  const addTrack=(pts,kind)=>{for(let i=1;i<pts.length;i++){const A=pts[i-1],B=pts[i];const seg=[[A.lon,A.lat],[B.lon,B.lat]];const L=pathLen(seg);
+      if(!L)continue;for(let s=0;s<L;s+=0.0006){const q=along(seg,s/L);ll.push(q.lon,q.lat);u.push(s);st.push(kind)}}};
+  addTrack(FIXES,3);
+  for(const f of FIXES){ll.push(f.lon*D2R,f.lat*D2R);u.push(0);st.push(4)}
+  if(showHistory)for(const h of (V.history||[]))addTrack((h.track||[]).map(p=>({lon:p[0],lat:p[1]})),5);
   if(!ll.length)return;const g=new THREE.BufferGeometry();
   g.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(ll.length/2*3),3));
   g.setAttribute('ll',new THREE.Float32BufferAttribute(ll,2));g.setAttribute('u',new THREE.Float32BufferAttribute(u,1));g.setAttribute('st',new THREE.Float32BufferAttribute(st,1));
@@ -570,7 +616,10 @@ function inRing(x,y,r){let c=false;for(let i=0,j=r.length/2-1;i<r.length/2;j=i++
 function countryAt(lon,lat){if(!countries)return null;const x=lon/D2R,y=lat/D2R;for(const f of countries){for(const poly of f.p){if(inRing(x,y,poly[0])){let hole=false;for(let k=1;k<poly.length;k++)if(inRing(x,y,poly[k]))hole=true;if(!hole)return f.n}}}return null}
 let toastT;
 function toast(html){const t=$('#toast');t.innerHTML=html;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600)}
-function tap(e){const p=pick(e);if(!p)return;const n=countryAt(p[0],p[1]);
+function fixAtScreen(x,y){for(const f of [...FIXES].reverse()){const v=place(f.lon*D2R,f.lat*D2R,0.002).project(camera);const sx=(v.x+1)/2*innerWidth,sy=(1-v.y)/2*innerHeight;
+  const n=sph(f.lon*D2R,f.lat*D2R);if(MORPH<0.5&&n.dot(camera.position.clone().normalize())<0.1)continue;if(Math.hypot(sx-x,sy-y)<24)return f}return null}
+function fixText(f){const tz=tzShip();const sog=f.sog_kn||0;return `<b>GPS · ${fDay(new Date(f.ts),tz)}, ${fTime(new Date(f.ts),tz)}</b><span>${sog<0.5?'not moving':compass(f.cog).split(' ')[0]+' · '+sog.toFixed(1)+' kn'}</span>`}
+function tap(e){const fx=fixAtScreen(e.clientX,e.clientY);if(fx){toast(fixText(fx));return}const p=pick(e);if(!p)return;const n=countryAt(p[0],p[1]);
   if(document.body.classList.contains('tara')){taraCountry(n,p);return}
   if(n)toast(`<b>${NAMEFIX[n]||n}</b>`);}
 
@@ -611,6 +660,9 @@ function stopLine(s,now){const tz=s.tz||'UTC';const bits=[];
   if(s.depart){const d=new Date(s.depart);bits.push(`${Date.now()>d?'Departed':'Depart'} ${s.departApprox?'~':''}${fDay(d,tz)}, ${fTime(d,tz)}${s.departApprox?' (likely)':''}`)}
   if(s.probable&&!s.arrive)bits.push(s.port?'Arrival date to be confirmed':'Port to be confirmed');
   return bits.join('<br>')}
+function compass(d){if(d==null)return '—';const n=['north','north-east','east','south-east','south','south-west','west','north-west'];return n[Math.round(((d%360)+360)%360/45)%8]+` (${Math.round(d)}°)`}
+function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+let lbI=0;function openLb(i){const P=V.note.photos;lbI=i;const lb=$('#lb');lb.querySelector('img').src=P[i];lb.classList.add('on');lb.querySelector('.cnt').textContent=P.length>1?`${i+1} / ${P.length}`:'';lb.querySelectorAll('.nv').forEach(b=>b.style.display=P.length>1?'':'none')}
 function renderSheet(){
   const now=new Date();compute(now);const st=state;const tzS=tzShip();const tzH=home.tz;
   let chip,title,sub,countK,countV,when='',prog=null;
@@ -622,8 +674,16 @@ function renderSheet(){
   else if(st.mode==='sea'){chip='At sea';title=st.next.port||st.next.country;sub=`Bound for ${st.next.port?st.next.country:'port to be confirmed'} · from ${st.from.port}`;countK='Arriving in';countV=dur(st.eta-now);prog=st.f;
     const d=new Date(st.eta);when=`About ${fTime(d,tzS)} ${dayWord(d,tzS,now)} · ${fTime(d,tzH)} in ${home.name}`}
   else{chip='At sea';title=st.next.country;sub=`Sailing from ${st.from.port} · port to be confirmed`;countK='At sea for';countV=dur(now-st.since)}
+  if(st.anchored&&(st.mode==='port'||st.mode==='inbound')){chip='At anchor';sub=`At anchor near ${st.stop.port} · ${st.stop.country}${st.stop.activity&&st.mode==='port'?' · '+st.stop.activity:''}`}
+  if(st.fix&&(st.fix.sog_kn||0)>=0.5&&st.fixPortNm>2&&(st.mode==='port'||st.mode==='inbound'))chip='Under way';
   const dS=isDay(tzS,now),dH=isDay(tzH,now);
-  const note=V.note&&V.note.text?`<div class="sec"><h3>A note from the ship</h3><div class="note">${V.note.text}<small>${V.note.date?fDay(new Date(V.note.date),tzS):''}</small></div></div>`:'';
+  let gps='';if(st.fix){const F=st.fix,ago=Math.max(0,now-F.ts),sog=F.sog_kn||0;
+    const agoT=ago<9e4?'just now':ago<36e5?Math.round(ago/6e4)+' min ago':ago<864e5?Math.floor(ago/36e5)+' h '+Math.round(ago%36e5/6e4)+' min ago':fDay(new Date(F.ts),tzS);
+    const mv=sog<0.5?(st.anchored?'at anchor':'not moving'):`heading ${compass(F.cog)} · ${sog.toFixed(1)} knots (${Math.round(sog*1.852)} km/h)`;
+    gps=`<button class="gps" id="bGps">${ICO.loc}<span><b>GPS fix ${agoT}</b> · ${mv}</span></button>`}
+  const ph=(V.note&&V.note.photos||[]).map((u,i)=>`<img src="${esc(u)}" loading="lazy" data-i="${i}" alt="">`).join('');
+  const note=V.note&&V.note.text?`<div class="sec"><h3>A note from the ship</h3><div class="note">${esc(V.note.text)}${ph?`<div class="photos n${Math.min((V.note.photos||[]).length,3)}">${ph}</div>`:''}<small>${V.note.date?fDay(new Date(V.note.date),tzS):''}</small></div></div>`:'';
+  const hist=(V.history||[]).length?`<div class="sec"><h3>Past voyages</h3>${V.history.map(h=>`<div class="pv"><b>${esc(h.name)}</b><span>${esc(h.dates||'')}</span></div>`).join('')}<button class="btn wide ${showHistory?'on':''}" id="bHist">${showHistory?'Hide':'Show'} all our travels</button></div>`:'';
   const tlHtml=stops.map(s=>{const isNow=(st.stop===s)||(st.mode==='inbound'&&st.stop===s);
     return `<div class="st ${isNow?'now':''} ${s.probable?'prob':''}"><div class="n">${s.port||s.country}${s.port?` <em>${s.country}</em>`:''}${s.probable?'<span class="tag">Probable</span>':''}</div><div class="m">${stopLine(s,now)}</div></div>`}).join('');
   const target=st.stop||st.next;
@@ -633,6 +693,7 @@ function renderSheet(){
    ${countV?`<div class="count"><span class="k">${countK}</span><span class="v">${countV}</span></div>`:''}
    ${when?`<div class="when">${when}</div>`:''}
    ${prog!=null?`<div class="bar"><i style="width:${(prog*100).toFixed(1)}%"></i></div>`:''}
+   ${gps}
    <div class="clocks">
     <div class="clk"><div class="l">${dS?ICO.sun:ICO.moon}Ship time</div><div class="t">${fTime(now,tzS)}</div><div class="d">${fDay(now,tzS)} · ${(shipRef()||{}).country||''}</div></div>
     <div class="clk"><div class="l">${dH?ICO.sun:ICO.moon}${home.name}</div><div class="t">${fTime(now,tzH)}</div><div class="d">${fDay(now,tzH)} · India</div></div>
@@ -641,6 +702,7 @@ function renderSheet(){
    <div class="more">
      ${note}
      <div class="sec"><h3>Voyage</h3><div class="tl">${tlHtml}</div></div>
+     ${hist}
      <div class="acts">
        <a class="btn pri" href="${gmaps(target)}" target="_blank" rel="noopener">${ICO.map}Google Maps</a>
        <button class="btn" id="bFly">${ICO.loc}Fly to ship</button>
@@ -648,6 +710,9 @@ function renderSheet(){
      <div class="foot">Updated ${fDay(new Date(V.updated),tzS)}, ${fTime(new Date(V.updated),tzS)} ship time · times are approximate</div>
    </div>`;
   const bf=$('#bFly');if(bf)bf.onclick=e=>{e.stopPropagation();flyToShip()};
+  const bg=$('#bGps');if(bg)bg.onclick=()=>{const F=st.fix;flyTo(F.lon*D2R,F.lat*D2R,0.12,1800)};
+  const bh=$('#bHist');if(bh)bh.onclick=()=>{showHistory=!showHistory;buildRoute();renderSheet();if(showHistory)flyTo(state.pos.lon,state.pos.lat,2.6,2000)};
+  document.querySelectorAll('.photos img').forEach(im=>im.onclick=()=>openLb(+im.dataset.i));
   $('.expand').onclick=()=>setSheet($('#sheet').classList.contains('open')?'':'open');
   const plain=h=>h.replace(/<b>(\w)<\/b>/g,'$1 ').trim();
   $('#peek').innerHTML=`<span class="pd"></span><span class="pt">${title}</span>${countV?`<span class="pr">${countK.replace(' in','')} ${plain(countV)}</span>`:''}<svg viewBox="0 0 24 24" style="width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;flex:none;opacity:.7"><path d="M6 15l6-6 6 6"/></svg>`;
@@ -667,7 +732,6 @@ const tanH=()=>2*Math.tan(camera.fov*D2R/2);
 const lzFromZ=(z,lat)=>Math.log2(innerHeight*2*Math.PI*Math.max(Math.cos(lat),0.2)/(256*tanH()*z));
 const zFromLz=(lz,lat)=>innerHeight*2*Math.PI*Math.max(Math.cos(lat),0.2)/(256*tanH()*Math.pow(2,lz));
 let mkShip=null,tileErr=0,tileOk=false;
-function esc(t){return String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function initMap(){
   map=L.map('tiles',{zoomControl:false,zoomSnap:0,zoomDelta:0.5,wheelPxPerZoomLevel:100,minZoom:3,maxZoom:18,worldCopyJump:true,attributionControl:true});
   map.attributionControl.setPrefix(false);
@@ -676,6 +740,8 @@ function initMap(){
   const dot=(lat,lon,col,html)=>L.marker([lat,lon],{icon:L.divIcon({className:'',html:`<div class="dotmk" style="background:${col}"><div class="mklab">${html}</div></div>`,iconSize:[16,16],iconAnchor:[8,8]}),interactive:false}).addTo(map);
   for(const s of stops)if(s.lat!=null&&s!==state.stop)dot(s.lat,s.lon,'#1d2b44',`${esc(s.port)}<small>${esc(s.country)}</small>`);
   dot(home.lat,home.lon,'#ff9a5a',`Home<small>${esc(home.name)}</small>`);
+  if(FIXES.length){L.polyline(FIXES.map(f=>[f.lat,f.lon]),{color:'#0b6fa4',weight:4,opacity:.85}).addTo(map);
+    for(const f of FIXES)L.circleMarker([f.lat,f.lon],{radius:7,color:'#fff',weight:3,fillColor:'#0b6fa4',fillOpacity:1}).bindTooltip(fixText(f).replace(/<\/?(b|span)>/g,' '),{direction:'top'}).addTo(map)}
   mkShip=L.marker([0,0],{icon:L.divIcon({className:'',html:'<div class="shipmk"><div class="rg"></div><div class="rg b"></div><div class="core"></div><div class="mklab" id="mkShipL"></div></div>',iconSize:[64,64],iconAnchor:[32,32]}),interactive:false,zIndexOffset:1000}).addTo(map);
   map.on('zoom',()=>{if(tilesOn&&!entering&&map.getZoom()<lzFromZ(ZT*1.45,map.getCenter().lat*D2R))exitTiles()});
   map.on('click',e=>{const n=countryAt(e.latlng.lng*D2R,e.latlng.lat*D2R);if(document.body.classList.contains('tara'))taraCountry(n,[e.latlng.lng*D2R,e.latlng.lat*D2R]);else if(n)toast(`<b>${esc(NAMEFIX[n]||n)}</b>`)});
@@ -685,7 +751,7 @@ function enterTiles(){
   tilesOn=true;entering=true;tilesT=performance.now();map.invalidateSize();
   map.setView([cam.lat/D2R,cam.lon/D2R],lzFromZ(cam.z,cam.lat),{animate:false});map.panBy([0,sheetOffset],{animate:false});
   mkShip.setLatLng([state.pos.lat/D2R,state.pos.lon/D2R]);
-  const l=document.getElementById('mkShipL');if(l)l.innerHTML=esc(V.shipLabel||'Our Ship')+(state.stop?`<small>${state.mode==='inbound'?'arriving ':'at '}${esc(state.stop.port)}</small>`:'');
+  const l=document.getElementById('mkShipL');if(l)l.innerHTML=esc(V.shipLabel||'Our Ship')+(state.stop?`<small>${state.anchored?'anchored off ':state.mode==='inbound'?'arriving ':'at '}${esc(state.stop.port)}</small>`:'');
   document.body.classList.add('tiles');cam.vlon=cam.vlat=0;drag=null;pts.clear();pinch0=null;
   setTimeout(()=>entering=false,400);
 }
@@ -696,6 +762,10 @@ function exitTiles(){
   document.body.classList.remove('tiles');
 }
 
+{const lb=$('#lb');const go=d=>{const P=V.note.photos;openLb((lbI+d+P.length)%P.length)};
+ lb.querySelector('.x').onclick=()=>lb.classList.remove('on');lb.querySelector('.pv2').onclick=e=>{e.stopPropagation();go(-1)};lb.querySelector('.nx').onclick=e=>{e.stopPropagation();go(1)};
+ lb.onclick=e=>{if(e.target===lb||e.target.tagName==='IMG')lb.classList.remove('on')};
+ addEventListener('keydown',e=>{if(!lb.classList.contains('on'))return;if(e.key==='Escape')lb.classList.remove('on');if(e.key==='ArrowLeft')go(-1);if(e.key==='ArrowRight')go(1)});}
 /* ============ label layout ============ */
 const tmp=new THREE.Vector3();
 function layoutLabels(){
@@ -746,9 +816,9 @@ function frame(now){
   atmMat.uniforms.uFade.value=1-MORPH;atm.visible=MORPH<0.99;
   if(window._sky)window._sky.position.copy(camera.position);
   // ship
-  const pos=state.pos;let hd=1.6;
+  const pos=state.pos;let hd=state.hdg!=null?state.hdg:1.6;
   if(state.pos&&state.pos.toward)hd=headingTo([pos.lon,pos.lat],state.pos.toward);
-  else if(state.mode==='departed'||state.mode==='port'){hd=2.4}
+  else if(state.hdg==null&&(state.mode==='departed'||state.mode==='port')){hd=2.4}
   const sc=clamp(cam.z*0.032,0.0006,0.03)*(document.body.classList.contains('tara')?1.8:1);
   const p=orientOnSurface(ship,pos.lon,pos.lat,0.0005,hd);ship.scale.setScalar(sc);
   const {up:upv}=frameAt(pos.lon,pos.lat,0);
@@ -759,7 +829,7 @@ function frame(now){
   // home & ports
   homeDot.position.copy(place(home.lon*D2R,home.lat*D2R,0.002));homeDot.scale.setScalar(cam.z*0.06);
   for(const {s,sp} of portDots){sp.position.copy(place(s.lon*D2R,s.lat*D2R,0.002));sp.scale.setScalar(cam.z*0.035)}
-  shipPill.lon=pos.lon;shipPill.lat=pos.lat;{const txt=(V.shipLabel||'Our Ship')+(state.stop?` <small>${state.mode==='inbound'?'arriving ':'at '}${state.stop.port}</small>`:'');if(shipPill._t!==txt){shipPill._t=txt;shipPill.el.firstChild.innerHTML='<span class="dot"></span>'+txt;shipPill.el._w=0}}
+  shipPill.lon=pos.lon;shipPill.lat=pos.lat;{const txt=(V.shipLabel||'Our Ship')+(state.stop?` <small>${state.anchored?'anchored off ':state.mode==='inbound'?'arriving ':'at '}${state.stop.port}</small>`:'');if(shipPill._t!==txt){shipPill._t=txt;shipPill.el.firstChild.innerHTML='<span class="dot"></span>'+txt;shipPill.el._w=0}}
   renderer.render(scene,camera);
   layoutLabels();
   requestAnimationFrame(frame);
